@@ -25,6 +25,13 @@ void VoxelGrid::fillGrid(Mesh& m)
 			}
 }
 
+void VoxelGrid::loadOFF(const std::string & filename)
+{
+	Mesh m;
+	m.loadOFF(filename);
+	fillGrid(m);
+}
+
 int VoxelGrid::nbVoxelPleins()
 {
 	int nb = 0;
@@ -65,7 +72,7 @@ inline void VoxelGrid::setVoxel(int x, int y, int z, bool value)
 	else _content[(x*_size + y)*_size + z] = value;
 }
 
-inline int VoxelGrid::getSize()
+int VoxelGrid::getSize()
 {
 	return _size;
 }

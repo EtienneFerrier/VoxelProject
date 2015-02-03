@@ -20,6 +20,7 @@
 #include "Triangle.h"
 #include "Mesh.h"
 #include "VoxelGrid.h"
+#include "Octree.h"
 
 // -------------------------------------------
 // OpenGL/GLUT application code.
@@ -293,7 +294,14 @@ int main (int argc, char ** argv) {
 	//========================= Ajout VoxelDAG Project ================
 	VoxelGrid voxGrid(16);
 	voxGrid.fillGrid(mesh);
-	cout << "Mesh -> VoxelGrid conversion done : " << voxGrid.nbVoxelPleins() << " voxels pleins" << endl;
+	cout << "Mesh -> VoxelGrid done : " << voxGrid.nbVoxelPleins() << " voxels pleins" << endl;
+
+	Octree tree;
+	tree.fillOctreeWithVoxelGrid(voxGrid);
+	cout << "VoxelGrid -> Octree done" << endl;
+	tree.convertOctreeToVoxelGrid(voxGrid);
+	cout << "Octree -> VoxelGrid done" << endl;
+
 	voxGrid.convertToMesh(mesh);
 	cout << "VoxelGrid -> Mesh done : " << mesh.Q.size() << " quads" << endl;
 	
