@@ -6,8 +6,6 @@ class Octree
 {
 	Octree* _childs;	//Contient les 8 Octree fils
 	bool _isEmpty;
-	// Champ a remplacer par un test de _childs == NULL
-	bool _isVoxel;		// True lorsque l'Octree represente un unique voxel (pas de fils dans ce cas)
 
 	void fillOctree(VoxelGrid& voxGrid, int x, int y, int z, int size); // Fonction recursive servant a fillOctreeWithVoxelGrid
 	void convertOctreeBlockToVoxelGrid(VoxelGrid& voxGrid, int x, int y, int z, int size); // Fonction recursive servant a convertOctreeToVoxelGrid

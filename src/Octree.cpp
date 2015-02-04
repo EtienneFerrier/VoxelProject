@@ -5,7 +5,6 @@ Octree::Octree()
 {
 	_childs = NULL;
 	_isEmpty = false;
-	_isVoxel = false;
 }
 
 Octree::~Octree()
@@ -18,7 +17,6 @@ void Octree::fillOctree(VoxelGrid& voxGrid, int x, int y, int z, int size)
 	if (size == 1)
 	{
 		_isEmpty = !voxGrid.getVoxel(x, y, z);
-		_isVoxel = true;
 	}
 	else
 	{
