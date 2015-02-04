@@ -384,7 +384,7 @@ int main (int argc, char ** argv) {
 	cout << "Octree -> VoxelGrid done" << endl;
 
 	voxGrid.convertToMesh(voxelMesh);
-	cout << "VoxelGrid -> Mesh done : " << mesh.Q.size() << " quads" << endl;
+	cout << "VoxelGrid -> Mesh done : " << voxelMesh.Q.size() << " quads" << endl;
 	
 
 	//========================= Fin des ajouts =========================
