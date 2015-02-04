@@ -53,7 +53,7 @@ Node::Node(const std::vector<Vertex>& sommet, const std::vector<Triangle>& trian
 		else _leftChild = new Node(sommet, fg, profondeur-1);
 
 		if (fd.size() == 0)
-			_rightChild == NULL;
+			_rightChild = NULL;
 		else _rightChild = new Node(sommet, fd, profondeur-1);
 	}
 	
@@ -95,7 +95,7 @@ Node::Node(const std::vector<Vertex>& sommet, const std::vector<Triangle>& trian
 		else _leftChild = new Node(sommet, fg);
 
 		if (fd.size() == 0)
-			_rightChild == NULL;
+			_rightChild = NULL;
 		else _rightChild = new Node(sommet, fd);
 	}
 
