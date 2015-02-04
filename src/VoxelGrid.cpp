@@ -40,6 +40,22 @@ void VoxelGrid::fillGridBSH(Mesh& m)
 
 }
 
+//Est 3 fois plus lente que fillGrid. Peut etre optimisée.
+void VoxelGrid::fillSparseGridBSH(Mesh& m)
+{
+	float step = 2.f / ((float)_size);
+
+	for (int i = 0; i < _size; i++)
+		for (int j = 0; j < _size; j++)
+			for (int k = 0; k < _size; k++)
+			{
+				if (m.estSurBordBSH(Vec3f(-1.f + step / 2.f + i*step, -1.f + step / 2.f + j*step, -1.f + step / 2.f + k*step), step))
+					setVoxel(i, j, k, true);
+			}
+
+
+}
+
 void VoxelGrid::loadOFF(const std::string & filename)
 {
 	Mesh m;

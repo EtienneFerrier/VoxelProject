@@ -357,7 +357,7 @@ int main (int argc, char ** argv) {
     glutInitDisplayMode (GLUT_RGBA | GLUT_DEPTH | GLUT_DOUBLE);
     glutInitWindowSize (SCREENWIDTH, SCREENHEIGHT);
     window = glutCreateWindow ("Rendering");
-    init (argc == 2 ? argv[1] : "models/monkey.off");
+    init (argc == 2 ? argv[1] : "models/rhino.off");
 
 	//========================= Ajout VoxelDAG Project ================
 	cout << "Mesh loaded : " << mesh.T.size() << " triangles" << endl;
@@ -374,7 +374,7 @@ int main (int argc, char ** argv) {
 	cout << "	Max taille feuille : " << mesh.BSHtree->maxTailleFeuille() << endl;
 
 	VoxelGrid voxGrid(64);
-	voxGrid.fillGridBSH(mesh);
+	voxGrid.fillSparseGridBSH(mesh); // convertit le mesh en VoxelGrid
 	cout << "Mesh -> VoxelGrid done : " << voxGrid.nbVoxelPleins() << " voxels pleins" << endl;
 
 	Octree tree;

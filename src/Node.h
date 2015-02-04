@@ -45,10 +45,16 @@ public:
 	}
 	Vec3f getCenter();
 	float getRadius();
-	void drawSphereTree(int level);
-	void drawContenu();
+	void drawSphereTree(int level); // Genere l'affichage des spheres de l'arbre au niveau level.
+	void drawContenu(); // Genere l'affichage de tout le mesh contenu
 	// On suppose que la direction du rayon est normée de norme 1
-	inline int intersectionCountBeforeTarget(const std::vector<Vertex>& V, const Ray& ray, float distMax);
+	// Calcul le nombre d'intersection a distance < distMax du rayon ray avec le mesh contenu dans l'arbre dont les sommets sont V. 
+	inline int intersectionCountBeforeTarget(const std::vector<Vertex>& V, const Ray& ray, float distMax); 
+	// Determine si le rayon ray intersecte le mesh contenu dans l'arbre, dont les sommets sont V, dans une boite de cote boxSize située à distance targetDistance de l'origine du rayon
+	inline bool intersectionInBox(const std::vector<Vertex>& V, const Ray& ray, float targetDistance, float boxSize);
+	// Dans l'idée : determine si le mesh contenu dans l'arbre, dont les sommets sont V, intersecte la boite de cote boxSize centrée sur point. Fonctionne dans presque tous les cas.
+	bool estSurBord(const std::vector<Vertex>& V, const Vec3f& point, float boxSize);
+	// Determine si un point est à l'intérieur du mesh contenu dans l'arbre, dont les sommets sont V.
 	bool estInterieur(const std::vector<Vertex>& V, const Vec3f& point);
 
 private:
@@ -57,6 +63,6 @@ private:
 	Node *_leftChild;
 	Node *_rightChild;
 	bool feuille;
-	std::vector<Triangle> trianglesContenus;
+	std::vector<Triangle> trianglesContenus; // Seulement rempli pour les feuilles de l'arbre
 
 };

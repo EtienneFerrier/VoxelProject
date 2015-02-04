@@ -208,9 +208,6 @@ inline int Node::intersectionCountBeforeTarget(const std::vector<Vertex>& V, con
 
 		float t;
 
-		if (trianglesContenus.size() == 0) 
-			std::cout << "ERREUR" << std::endl;
-
 		for (unsigned int i = 0; i < trianglesContenus.size(); i++)
 		{
 			if (triangle_intersection(V[trianglesContenus[i].v[0]].p, V[trianglesContenus[i].v[1]].p, V[trianglesContenus[i].v[2]].p, ray._o, ray._dir, &t) && t < distMax)
@@ -231,8 +228,45 @@ inline int Node::intersectionCountBeforeTarget(const std::vector<Vertex>& V, con
 	return count;
 }
 
+inline bool Node::intersectionInBox(const std::vector<Vertex>& V, const Ray& ray, float targetDistance, float boxSize)
+{
+
+	if ((_c - ray._o).length() - _r > targetDistance + boxSize/2.f){
+		return false;
+	}
+	else if (_leftChild == NULL && _rightChild == NULL)
+	{
+		float t;
+
+		for (unsigned int i = 0; i < trianglesContenus.size(); i++)
+		{
+			if (triangle_intersection(V[trianglesContenus[i].v[0]].p, V[trianglesContenus[i].v[1]].p, V[trianglesContenus[i].v[2]].p, ray._o, ray._dir, &t) && abs(targetDistance - t) < boxSize/2.f )
+				return true;
+		}
+		return false;
+	}
+	else if (sphereRayIntersect(_c, _r, ray._o, ray._dir))
+	{
+		if (_leftChild == NULL)
+			return _rightChild->intersectionInBox(V, ray, targetDistance, boxSize);
+		if (_rightChild == NULL)
+			return _leftChild->intersectionInBox(V, ray, targetDistance, boxSize);
+		else
+			return _rightChild->intersectionInBox(V, ray, targetDistance, boxSize) || _leftChild->intersectionInBox(V, ray, targetDistance, boxSize);
+	}
+	else return false;
+}
+
 bool Node::estInterieur(const std::vector<Vertex>& V, const Vec3f& point)
 {
 	Ray ray(Vec3f(point - Vec3f(10.f, 0.f, 0.f)), Vec3f(1.f, 0.f, 0.f));
-	return ((intersectionCountBeforeTarget(V, ray, 10) % 2) == 1);
+	return ((intersectionCountBeforeTarget(V, ray, 10.f) % 2) == 1);
+}
+
+bool Node::estSurBord(const std::vector<Vertex>& V, const Vec3f& point, float boxSize)
+{
+	Ray rayX(Vec3f(point - Vec3f(10.f, 0.f, 0.f)), Vec3f(1.f, 0.f, 0.f));
+	Ray rayY(Vec3f(point - Vec3f(0.f, 10.f, 0.f)), Vec3f(0.f, 1.f, 0.f));
+	Ray rayZ(Vec3f(point - Vec3f(0.f, 0.f, 10.f)), Vec3f(0.f, 0.f, 1.f));
+	return intersectionInBox(V, rayX, 10.f, boxSize) || intersectionInBox(V, rayY, 10.f, boxSize) || intersectionInBox(V, rayZ, 10.f, boxSize);
 }

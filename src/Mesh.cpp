@@ -154,3 +154,8 @@ void Mesh::computeBSH()
 bool Mesh::estInterieurBSH(const Vec3f& point){
 	return BSHtree->estInterieur(V, point);
 }
+
+bool Mesh::estSurBordBSH(const Vec3f& point, float boxSize)
+{
+	return BSHtree->estSurBord(V, point, boxSize);
+}
