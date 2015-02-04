@@ -25,6 +25,21 @@ void VoxelGrid::fillGrid(Mesh& m)
 			}
 }
 
+void VoxelGrid::fillGridBSH(Mesh& m)
+{
+	float step = 2.f / ((float)_size);
+
+	for (int i = 0; i < _size; i++)
+		for (int j = 0; j < _size; j++)
+			for (int k = 0; k < _size; k++)
+			{
+		if (m.estInterieurBSH(Vec3f(-1.f + step / 2.f + i*step, -1.f + step / 2.f + j*step, -1.f + step / 2.f + k*step)))
+			setVoxel(i, j, k, true);
+			}
+
+
+}
+
 void VoxelGrid::loadOFF(const std::string & filename)
 {
 	Mesh m;

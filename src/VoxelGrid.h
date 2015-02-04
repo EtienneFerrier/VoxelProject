@@ -17,6 +17,7 @@ public:
 	VoxelGrid(int size); // Cree une grille de taille voulue et l'initialise a false
 	~VoxelGrid();
 	void fillGrid(Mesh& m); // Convertit un mesh en voxelGrid
+	void fillGridBSH(Mesh& m); // Convertit un mesh en voxelGrid en utilisant la structure BSH
 	void loadOFF(const std::string & filename); // Convertit un mesh en format OFF en voxelGrid
 	int nbVoxelPleins(); // Donne le nombre de voxels pleins de la grille
 	void setAllGrid(bool value); // Remplit la grille avec "value" dans chaque case

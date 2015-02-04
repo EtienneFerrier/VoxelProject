@@ -26,15 +26,6 @@ void Octree::fillOctree(VoxelGrid& voxGrid, int x, int y, int z, int size)
 
 		int halfSize = size / 2;
 
-		//_childs[0] = Octree();
-		//_childs[1] = Octree();
-		//_childs[2] = Octree();
-		//_childs[3] = Octree();
-		//_childs[4] = Octree();
-		//_childs[5] = Octree();
-		//_childs[6] = Octree();
-		//_childs[7] = Octree();
-
 		_childs[0].fillOctree(voxGrid, x, y, z, halfSize);
 		_childs[1].fillOctree(voxGrid, x + halfSize, y, z, halfSize);
 		_childs[2].fillOctree(voxGrid, x + halfSize, y + halfSize, z, halfSize);
@@ -71,7 +62,7 @@ void Octree::convertOctreeBlockToVoxelGrid(VoxelGrid& voxGrid, int x, int y, int
 			for (int j = 0; j < size; j++)
 				for (int k = 0; k < size; k++)
 				{
-					voxGrid.setVoxel(x + i, x + j, x + k, false);
+					voxGrid.setVoxel(x + i, y + j, z + k, false);
 				}
 	}
 	else

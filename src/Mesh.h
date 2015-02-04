@@ -8,13 +8,20 @@
 #include "Vertex.h"
 #include "Ray.h"
 #include "Quad.h"
+#include "Node.h"
 
 #define EPSILON 0.000001
 
+// Test l'intersection d'un rayon et d'un triangle. out est le parametre d'intersection le long du rayon.
+bool triangle_intersection(const Vec3f& V1, const Vec3f& V2, const Vec3f& V3, const Vec3f& O, const Vec3f& D, float* out);
+
+class Node;
 
 /// A Mesh class, storing a list of vertices and a list of triangles indexed over it.
 class Mesh {
 public:
+	Node* BSHtree; // Arbre de spheres englobantes
+
 	std::vector<Vertex> V;
 	std::vector<Triangle> T;
 	std::vector<Quad> Q;
@@ -28,11 +35,12 @@ public:
 	/// scale to the unit cube and center at original
 	void centerAndScaleToUnit();
 
-	// Test l'intersection d'un rayon et d'un triangle. out est le parametre d'intersection le long du rayon.
-	bool triangle_intersection(const Vec3f& V1, const Vec3f& V2, const Vec3f& V3, const Vec3f& O, const Vec3f& D, float* out);
-
 	// Teste si un point est a l'interieur du mesh. Attention, le point doit etre de norme <=2 et le mesh doit etre normalise.
 	bool estInterieur(const Vec3f& point);
+
+	void computeBSH(int level); // Charge tree
+	void computeBSH();
+	bool estInterieurBSH(const Vec3f& point);
 
 };
 

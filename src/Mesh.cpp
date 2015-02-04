@@ -68,7 +68,7 @@ void Mesh::centerAndScaleToUnit() {
 		V[i].p = (V[i].p - c) / maxD;
 }
 
-bool Mesh::triangle_intersection(const Vec3f& V1, const Vec3f& V2, const Vec3f& V3, const Vec3f& O, const Vec3f& D, float* out)
+bool triangle_intersection(const Vec3f& V1, const Vec3f& V2, const Vec3f& V3, const Vec3f& O, const Vec3f& D, float* out)
 {
 	Vec3f    u, v, n;              // triangle vectors
 	Vec3f    dir, w0, w;           // ray vectors
@@ -139,4 +139,18 @@ bool Mesh::estInterieur(const Vec3f& point)
 	}
 		
 	return ((interCount % 2) == 1);
+}
+
+void Mesh::computeBSH(int profondeur)
+{
+	BSHtree = new Node(V, T, profondeur);
+}
+
+void Mesh::computeBSH()
+{
+	BSHtree = new Node(V, T);
+}
+
+bool Mesh::estInterieurBSH(const Vec3f& point){
+	return BSHtree->estInterieur(V, point);
 }

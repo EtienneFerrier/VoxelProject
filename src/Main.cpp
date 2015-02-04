@@ -21,6 +21,11 @@
 #include "Mesh.h"
 #include "VoxelGrid.h"
 #include "Octree.h"
+#include "Node.h"
+
+#define ORIGINAL_MESH 0
+#define BSH_TREE 1
+#define VOXEL_MESH 2
 
 // -------------------------------------------
 // OpenGL/GLUT application code.
@@ -37,8 +42,14 @@ static int lastX=0, lastY=0, lastZoom=0;
 static unsigned int FPS = 0;
 static bool fullScreen = false;
 static bool wireframe = false;
+static int BSHdisplayLevel = 0;
+static int maxBSHlevel = 0;
+static int displayMode = ORIGINAL_MESH;
 
 Mesh mesh;
+Mesh sphereMesh;
+Mesh voxelMesh;
+
 
 void printUsage () {
 	std::cerr << std::endl 
@@ -55,7 +66,10 @@ void printUsage () {
          << " <drag>+<left button>: rotate model" << std::endl 
          << " <drag>+<right button>: move model" << std::endl
          << " <drag>+<middle button>: zoom" << std::endl
-         << " q, <esc>: Quit" << std::endl << std::endl; 
+		 << " q, <esc>: Quit" << std::endl << std::endl
+	     << " 1 : Original mesh display" << std::endl
+		 << " 2 : BSH tree display" << std::endl
+		 << " 3 : Voxel mesh display" << std::endl << std::endl;
 }
 
 void usage () {
@@ -119,40 +133,74 @@ void init (const char * modelFilename) {
 #endif
 }
 
-void draw () {
-    // Starts a list of triangles (OpenGL immediat mode)
-    glBegin (GL_TRIANGLES);
-    
-    // IMPORTANT NOTE: disable lighting and use glColor3f (r,g,b) to specify per-vertex
-    // color or use enable GL_COLOR_MATERIAL to use both vertex color and lighting
-    for (unsigned int i = 0; i < mesh.T.size (); i++) 
-        for (unsigned int j = 0; j < 3; j++) {
-            const Vertex & v = mesh.V[mesh.T[i].v[j]];
-            
-            // Specifies current normal vertex
-            glNormal3f (v.n[0], v.n[1], v.n[2]); 
-            
-            // Emit a vertex (one triangle is emitted each time 3 vertices are emitted)
-            glVertex3f (v.p[0], v.p[1], v.p[2]); 
-        }
+void drawSphere(Vec3f center, float rad)
+{
+	for (unsigned int i = 0; i < sphereMesh.V.size(); i++)
+		sphereMesh.V[i].p = sphereMesh.V[i].p*rad + center;
 
-    // Ends the triangle drawing
-    glEnd (); 
+	for (unsigned int i = 0; i < sphereMesh.T.size(); i++)
+		for (unsigned int j = 0; j < 3; j++) {
+		const Vertex & v = sphereMesh.V[sphereMesh.T[i].v[j]];
 
-	glBegin(GL_QUADS);
+		// Specifies current normal vertex
+		glNormal3f(v.n[0], v.n[1], v.n[2]);
 
-	for (unsigned int i = 0; i < mesh.Q.size(); i++)
-		for (unsigned int j = 0; j < 4; j++) {
-			const Vertex & v = mesh.V[mesh.Q[i].v[j]];
-
-			glNormal3f(v.n[0], v.n[1], v.n[2]);
-
-			glVertex3f(v.p[0], v.p[1], v.p[2]);
-
+		// Emit a vertex (one triangle is emitted each time 3 vertices are emitted)
+		glVertex3f(v.p[0], v.p[1], v.p[2]);
 		}
 
-	glEnd();
+	for (unsigned int i = 0; i < sphereMesh.V.size(); i++)
+		sphereMesh.V[i].p = (sphereMesh.V[i].p - center) / rad;
+}
 
+void draw () {
+    
+    
+	switch (displayMode)
+	{
+		case ORIGINAL_MESH:
+			// IMPORTANT NOTE: disable lighting and use glColor3f (r,g,b) to specify per-vertex
+			// color or use enable GL_COLOR_MATERIAL to use both vertex color and lighting
+			// Starts a list of triangles (OpenGL immediat mode)
+			glBegin(GL_TRIANGLES);
+
+			for (unsigned int i = 0; i < mesh.T.size(); i++)
+				for (unsigned int j = 0; j < 3; j++) {
+				const Vertex & v = mesh.V[mesh.T[i].v[j]];
+
+				// Specifies current normal vertex
+				glNormal3f(v.n[0], v.n[1], v.n[2]);
+
+				// Emit a vertex (one triangle is emitted each time 3 vertices are emitted)
+				glVertex3f(v.p[0], v.p[1], v.p[2]);
+				}
+
+			// Ends the triangle drawing
+			glEnd();
+			break;
+
+		case BSH_TREE:
+			glBegin(GL_TRIANGLES);
+			mesh.BSHtree->drawSphereTree(BSHdisplayLevel);
+			glEnd();
+			break;
+
+		case VOXEL_MESH:
+			glBegin(GL_QUADS);
+
+			for (unsigned int i = 0; i < voxelMesh.Q.size(); i++)
+				for (unsigned int j = 0; j < 4; j++) {
+				const Vertex & v = voxelMesh.V[voxelMesh.Q[i].v[j]];
+
+				glNormal3f(v.n[0], v.n[1], v.n[2]);
+
+				glVertex3f(v.p[0], v.p[1], v.p[2]);
+
+				}
+
+			glEnd();
+			break;
+	}
 }
 
 void display () {
@@ -224,8 +272,28 @@ void key (unsigned char keyPressed, int x, int y) {
         glPolygonMode (GL_FRONT_AND_BACK, wireframe ? GL_FILL : GL_LINE);
         wireframe = !wireframe;
         break;
+	case 'p' :
+		BSHdisplayLevel = min(BSHdisplayLevel + 1, maxBSHlevel);
+		cout << "BSH level : " << BSHdisplayLevel << endl;
+		break;
+	case 'm':
+		BSHdisplayLevel = max(BSHdisplayLevel - 1, 0);
+		break;
+	case '1':
+		displayMode = ORIGINAL_MESH;
+		cout << "Display : original mesh" << endl;
+		break;
+	case '2':
+		displayMode = BSH_TREE;
+		cout << "Display : BSH tree" << endl;
+		break;
+	case '3':
+		displayMode = VOXEL_MESH;
+		cout << "Display : voxel mesh" << endl;
+		break;
     default:
         printUsage ();
+		//cout << keyPressed << endl;
         break;
     }
     idle ();
@@ -289,11 +357,24 @@ int main (int argc, char ** argv) {
     glutInitDisplayMode (GLUT_RGBA | GLUT_DEPTH | GLUT_DOUBLE);
     glutInitWindowSize (SCREENWIDTH, SCREENHEIGHT);
     window = glutCreateWindow ("Rendering");
-    init (argc == 2 ? argv[1] : "models/sphere.off");
+    init (argc == 2 ? argv[1] : "models/monkey.off");
 
 	//========================= Ajout VoxelDAG Project ================
-	VoxelGrid voxGrid(16);
-	voxGrid.fillGrid(mesh);
+	cout << "Mesh loaded : " << mesh.T.size() << " triangles" << endl;
+
+	sphereMesh.loadOFF("models/sphere.off");
+	cout << "Sphere mesh loaded." << endl;
+
+	mesh.computeBSH(9);
+	maxBSHlevel = mesh.BSHtree->maxCompleteLevel(); // Limite de l'affichage du BSH
+
+	cout << "BSH done." << endl;
+	cout << "	Hauteur = " << mesh.BSHtree->hauteur() << endl;
+	cout << "	Max complete level : " << mesh.BSHtree->maxCompleteLevel() << endl;
+	cout << "	Max taille feuille : " << mesh.BSHtree->maxTailleFeuille() << endl;
+
+	VoxelGrid voxGrid(64);
+	voxGrid.fillGridBSH(mesh);
 	cout << "Mesh -> VoxelGrid done : " << voxGrid.nbVoxelPleins() << " voxels pleins" << endl;
 
 	Octree tree;
@@ -302,7 +383,7 @@ int main (int argc, char ** argv) {
 	tree.convertOctreeToVoxelGrid(voxGrid);
 	cout << "Octree -> VoxelGrid done" << endl;
 
-	voxGrid.convertToMesh(mesh);
+	voxGrid.convertToMesh(voxelMesh);
 	cout << "VoxelGrid -> Mesh done : " << mesh.Q.size() << " quads" << endl;
 	
 
