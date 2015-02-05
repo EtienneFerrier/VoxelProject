@@ -10,7 +10,7 @@ FLAGS = -Wall -g -O2 -std=c++11 #-DGPU_SHADERS
 CFLAGS = $(FLAGS)
 CXXFLAGS = $(FLAGS)
 
-OBJS = $(SRCS:.cpp=.o)   
+OBJS = $(SRCS:.cpp=.o)
 
 $(CIBLE): $(OBJS)
 	$(CPP) $(LDFLAGS) -o $(CIBLE) $(OBJS) $(LIBS)
