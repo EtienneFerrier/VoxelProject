@@ -25,8 +25,8 @@ Node::Node(const std::vector<Vertex>& sommet, const std::vector<Triangle>& trian
 		//feuille = true;
 		_leftChild = NULL;
 		_rightChild = NULL;
-		for (Triangle t : triangle)
-			trianglesContenus.push_back(t);
+		for (unsigned int i = 0; i < triangle.size(); i++)
+			trianglesContenus.push_back(triangle[i]);
 	}
 	else
 	{
@@ -39,13 +39,13 @@ Node::Node(const std::vector<Vertex>& sommet, const std::vector<Triangle>& trian
 
 		Vec3f tmp(0., 0., 0.);
 
-		for (Triangle t : triangle)
+		for (unsigned int i = 0; i < triangle.size(); i++)
 		{
-			tmp = (sommet[t.v[0]].p + sommet[t.v[1]].p + sommet[t.v[2]].p) / 3.;
+			tmp = (sommet[triangle[i].v[0]].p + sommet[triangle[i].v[1]].p + sommet[triangle[i].v[2]].p) / 3.;
 			if (dot(dir, tmp - _c) > 0.)
-				fg.push_back(t);
+				fg.push_back(triangle[i]);
 			else
-				fd.push_back(t);
+				fd.push_back(triangle[i]);
 		}
 
 		if (fg.size() == 0)
@@ -81,13 +81,13 @@ Node::Node(const std::vector<Vertex>& sommet, const std::vector<Triangle>& trian
 
 		Vec3f tmp(0., 0., 0.);
 
-		for (Triangle t : triangle)
+		for (unsigned int i = 0; i < triangle.size(); i++)
 		{
-			tmp = (sommet[t.v[0]].p + sommet[t.v[1]].p + sommet[t.v[2]].p) / 3.;
+			tmp = (sommet[triangle[i].v[0]].p + sommet[triangle[i].v[1]].p + sommet[triangle[i].v[2]].p) / 3.;
 			if (dot(dir, tmp - _c) > 0.)
-				fg.push_back(t);
+				fg.push_back(triangle[i]);
 			else
-				fd.push_back(t);
+				fd.push_back(triangle[i]);
 		}
 
 		if (fg.size() == 0)
@@ -135,10 +135,10 @@ Vec3f Node::maxVarDir(const std::vector<Vertex>& sommet, const std::vector<Trian
 {
 	float dir[3] = { 0., 0., 0. };
 
-	for (Triangle t : triangle)
+	for (unsigned int k = 0; k < triangle.size(); k++)
 		for (int j = 0; j < 3; j++)
 			for (int i = 0; i < 3; i++)
-				dir[i] += (sommet[t.v[j]].p[i] - bary[i])*(sommet[t.v[j]].p[i] - bary[i]);
+				dir[i] += (sommet[triangle[k].v[j]].p[i] - bary[i])*(sommet[triangle[k].v[j]].p[i] - bary[i]);
 
 	if (dir[0] > dir[1] && dir[0] > dir[2])
 		return Vec3f(1., 0., 0.);
@@ -150,9 +150,9 @@ Vec3f Node::maxVarDir(const std::vector<Vertex>& sommet, const std::vector<Trian
 Vec3f Node::barycentre(const std::vector<Vertex>& sommet, const std::vector<Triangle>& triangleList)
 {
 	Vec3f bary(0., 0., 0.);
-	for (Triangle t : triangleList)
+	for (unsigned int i = 0; i < triangleList.size(); i++)
 	{
-		bary += sommet[t.v[0]].p + sommet[t.v[1]].p + sommet[t.v[2]].p;
+		bary += sommet[triangleList[i].v[0]].p + sommet[triangleList[i].v[1]].p + sommet[triangleList[i].v[2]].p;
 	}
 	bary /= 3.f * triangleList.size();
 
@@ -162,10 +162,10 @@ Vec3f Node::barycentre(const std::vector<Vertex>& sommet, const std::vector<Tria
 float Node::maxDist(Vec3f centre, const std::vector<Vertex>& sommet, const std::vector<Triangle>& triangleList)
 {
 	float dist = 0.;
-	for (Triangle t : triangleList)
+	for (unsigned int j = 0; j < triangleList.size(); j++)
 		for (int i = 0; i < 3; i++)
 		{
-			float d = (centre - sommet[t.v[i]].p).length();
+			float d = (centre - sommet[triangleList[j].v[i]].p).length();
 			if (d > dist)
 				dist = d;
 		}
