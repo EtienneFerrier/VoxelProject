@@ -233,7 +233,11 @@ void idle () {
         counter = 0;
         static char winTitle [128];
         unsigned int numOfTriangles = mesh.T.size ();
+#ifdef _WIN32
         sprintf_s (winTitle, "Number Of Triangles: %d - FPS: %d", numOfTriangles, FPS);
+#else
+        sprintf (winTitle, "Number Of Triangles: %d - FPS: %d", numOfTriangles, FPS);
+#endif
         glutSetWindowTitle (winTitle);
         lastTime = currentTime;
     }
@@ -349,7 +353,7 @@ void reshape(int w, int h) {
 
 int main (int argc, char ** argv) {
 
-    if (argc > 2) {
+    if (argc > 3) {
         printUsage ();
         exit (EXIT_FAILURE);
     }
@@ -357,12 +361,13 @@ int main (int argc, char ** argv) {
     glutInitDisplayMode (GLUT_RGBA | GLUT_DEPTH | GLUT_DOUBLE);
     glutInitWindowSize (SCREENWIDTH, SCREENHEIGHT);
     window = glutCreateWindow ("Rendering");
-    init (argc == 2 ? argv[1] : "models/rhino.off");
+
+    init (argc >= 2 ? argv[1] : "models/rhino.off");
 
 	//========================= Ajout VoxelDAG Project ================
 	cout << "Mesh loaded : " << mesh.T.size() << " triangles" << endl;
 
-	sphereMesh.loadOFF("models/sphere.off");
+	sphereMesh.loadOFF(argc == 3 ? argv[2] : "models/sphere.off");
 	cout << "Sphere mesh loaded." << endl;
 
 	mesh.computeBSH(9);

@@ -37,7 +37,7 @@ public:
 		return feuille;
 		//return (_leftChild == NULL);
 	}
-	inline virtual Node::~Node(){
+	inline virtual ~Node(){
 		if (!isLeaf()){
 			delete _leftChild;
 			delete _rightChild;
