@@ -233,7 +233,7 @@ void idle () {
         counter = 0;
         static char winTitle [128];
         unsigned int numOfTriangles = mesh.T.size ();
-        sprintf_s (winTitle, "Number Of Triangles: %d - FPS: %d", numOfTriangles, FPS);
+        sprintf (winTitle, "Number Of Triangles: %d - FPS: %d", numOfTriangles, FPS);
         glutSetWindowTitle (winTitle);
         lastTime = currentTime;
     }
@@ -362,7 +362,7 @@ int main (int argc, char ** argv) {
 	//========================= Ajout VoxelDAG Project ================
 	cout << "Mesh loaded : " << mesh.T.size() << " triangles" << endl;
 
-	sphereMesh.loadOFF("models/sphere.off");
+	sphereMesh.loadOFF("../models/sphere.off");
 	cout << "Sphere mesh loaded." << endl;
 
 	mesh.computeBSH(9);
