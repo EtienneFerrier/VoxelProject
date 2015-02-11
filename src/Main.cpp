@@ -374,7 +374,7 @@ int main (int argc, char ** argv) {
 	cout << "	Max taille feuille : " << mesh.BSHtree->maxTailleFeuille() << endl;
 
 	VoxelGrid voxGrid(64);
-	voxGrid.fillSparseGridBSH(mesh); // convertit le mesh en VoxelGrid
+	voxGrid.fillGridBSH(mesh); // convertit le mesh en VoxelGrid
 	cout << "Mesh -> VoxelGrid done : " << voxGrid.nbVoxelPleins() << " voxels pleins" << endl;
 
 	Octree tree;
@@ -385,7 +385,9 @@ int main (int argc, char ** argv) {
 
 	voxGrid.convertToMesh(voxelMesh);
 	cout << "VoxelGrid -> Mesh done : " << voxelMesh.Q.size() << " quads" << endl;
-	
+
+	//displayMask(tree.computeMask());
+	//cout << maskValue(tree.computeMask()) << endl;
 
 	//========================= Fin des ajouts =========================
     glutIdleFunc (idle);
