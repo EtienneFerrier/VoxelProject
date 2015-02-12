@@ -4,7 +4,7 @@
 Octree::Octree()
 {
 	_childs = NULL;
-	_isEmpty = false;
+	_isEmpty = true;
 }
 
 Octree::~Octree()
@@ -15,6 +15,24 @@ Octree::~Octree()
 bool Octree::isEmpty()
 {
 	return _isEmpty;
+}
+
+bool Octree::isLeaf()
+{
+	return _childs == NULL;
+}
+
+bool Octree::isFatherOfLeaves()
+{
+	return _childs != NULL &&
+		_childs[0].isLeaf() &&
+		_childs[1].isLeaf() &&
+		_childs[2].isLeaf() &&
+		_childs[3].isLeaf() &&
+		_childs[4].isLeaf() &&
+		_childs[5].isLeaf() &&
+		_childs[6].isLeaf() &&
+		_childs[7].isLeaf();
 }
 
 void Octree::fillOctree(VoxelGrid& voxGrid, int x, int y, int z, int size)
@@ -38,15 +56,15 @@ void Octree::fillOctree(VoxelGrid& voxGrid, int x, int y, int z, int size)
 		_childs[6].fillOctree(voxGrid, x + halfSize, y + halfSize, z + halfSize, halfSize);
 		_childs[7].fillOctree(voxGrid, x, y + halfSize, z + halfSize, halfSize);
 
-		if (_childs[0]._isEmpty &&
-			_childs[1]._isEmpty &&
-			_childs[2]._isEmpty &&
-			_childs[3]._isEmpty &&
-			_childs[4]._isEmpty &&
-			_childs[5]._isEmpty &&
-			_childs[6]._isEmpty &&
-			_childs[7]._isEmpty)
-			_isEmpty = true;
+		_isEmpty = _childs[0]._isEmpty &&
+				_childs[1]._isEmpty &&
+				_childs[2]._isEmpty &&
+				_childs[3]._isEmpty &&
+				_childs[4]._isEmpty &&
+				_childs[5]._isEmpty &&
+				_childs[6]._isEmpty &&
+				_childs[7]._isEmpty;
+
 	}
 }
 
@@ -87,7 +105,6 @@ void Octree::convertOctreeToVoxelGrid(VoxelGrid& voxGrid)
 {
 	convertOctreeBlockToVoxelGrid(voxGrid, 0, 0, 0, voxGrid.getSize());
 }
-
 
 
 // Affiche les 8 bits de mask
@@ -132,77 +149,143 @@ uint8_t Octree::computeMask()
 }
 
 
-// TODO : Debug
-void Octree::encodeWithPointersRec(ofstream& file, uint32_t& index)
+void Octree::encodeWithPointersRec(vector<uint8_t>& masks, vector<uint32_t>& pointers, uint32_t& index)
 {
-	uint32_t emptyChildPt = index + 1;
+	uint32_t firstEmptyChildPt = index;
 	uint8_t mask;
-	uint32_t tmp;
+	bool lastLevel = false;
 
+	//Masks
 	for (int i = 0; i < 8; i++)
 	{
-		if (!_childs[i]._isEmpty)
+		if (!_childs[i]._isEmpty && !_childs[i].isLeaf())
 		{
 			mask = _childs[i].computeMask(); // Encodage du masque du fils i
-			tmp = 0; // Le pointeur vers les fils du fils i n'est pas encore indefini
-			file << mask << tmp; // Ecriture du masque et du pointeur
-			index += 5; // 5 bytes ont été écrits
+			masks.push_back(mask);
+			index++;
+			pointers.push_back(0);
 		}
 	}
+
+	//Pointers
+	for (int i = 0; i < 8; i++)
+	{
+		if (!_childs[i]._isEmpty && !_childs[i].isLeaf())
+		{
+			if (_childs[i].isFatherOfLeaves())
+				pointers[firstEmptyChildPt] = 0;
+			else
+				pointers[firstEmptyChildPt] = index; // On retourne écrire le poiteur vers les fils du fils i
+
+			firstEmptyChildPt++;
+			_childs[i].encodeWithPointersRec(masks, pointers, index); // On encode les fils du fils i
+		}
+	}
+
+}
+
+void Octree::encodeWithPointers(vector<uint8_t>& masks, vector<uint32_t>& pointers)
+{
+	uint32_t index = 0;
+	uint8_t mask = computeMask();
+	uint32_t childPt = 1; // Index du 1er fils de la racine
+
+	masks.push_back(mask);
+	index++;
+	pointers.push_back(childPt);
+
+	encodeWithPointersRec(masks, pointers, index);
+}
+
+void Octree::loadFromPointerEncodingRec(const vector<uint8_t>& masks, const vector<uint32_t>& pointers, int index)
+{
+	uint8_t mask = masks[index];
+	_childs = new Octree[8];
 
 	for (int i = 0; i < 8; i++)
 	{
-		if (!_childs[i]._isEmpty)
+		_childs[i]._isEmpty = ((mask & (128 >> i)) == 0);
+	}
+
+	if (pointers[index] > 0)
+	{
+		int tmp = 0;
+		for (int i = 0; i < 8; i++)
 		{
-			file.seekp(emptyChildPt); // On retourne écrire dans le poiteurs vers les fils du fils i
-			file << index; // On y écrit la position du premier fils du fils i
-			emptyChildPt += 5; 
-			file.seekp(index); // On retourne a la position du premier fils du fils i
-			_childs[i].encodeWithPointersRec(file, index); // On encode les fils du fils i
+			if (!_childs[i]._isEmpty)
+			{
+				_childs[i].loadFromPointerEncodingRec(masks, pointers, pointers[index] + tmp);
+				tmp++;
+			}
 		}
 	}
-
 }
 
-// TODO : Debug
-void Octree::encodeWithPointers(string path)
+void Octree::loadFromPointerEncoding(const vector<uint8_t>& masks, const vector<uint32_t>& pointers)
 {
-	ofstream file(path.c_str(), ios::in | ios::binary);
-
-	if (file) {
-		uint32_t index = 0;
-		uint8_t mask = computeMask();
-		uint32_t childPt = 5; // Index du 1er fils de la racine
-		file << mask << childPt; // On ecrit les infos de la racine
-		index += 5; // 5 bytes écrits
-		encodeWithPointersRec(file, index);
-
-		file.close();
-	}
+	uint8_t mask = masks[0];
+	if (mask == 0)
+		return;
 	else
-		cout << "Erreur ouverture fichier" << endl;
+	{
+		_childs = new Octree[8];
+		_isEmpty = false;
+		loadFromPointerEncodingRec(masks, pointers, 0);
+	}
+	
 }
 
-// TODO : Debug
 void Octree::encodeBreadthFirst(vector<uint8_t>& storage)
 {
-	queue < Octree > file;
-	file.push(*this);
+	queue < Octree* > file; // file ne signifie pas "Fichier" mais bien "Queue".
+	file.push(this);
 
 	while (!file.empty())
 	{
-		Octree tree = file.front();
+		Octree* node = file.front();
 		file.pop();
 
-		storage.push_back(tree.computeMask());
+		storage.push_back(node->computeMask());
 
 		for (int i = 0; i < 8; i++)
 		{
-			if (!tree._childs[i].isEmpty())
+			if (!node->_childs[i].isEmpty() && !node->_childs[i].isLeaf()) // 2e condition = pas de feuille ajoutée à la file.
 			{
-				file.push(tree._childs[i]);
+				file.push(&(node->_childs[i]));
 			}
 		}
+		
+	}
+}
+
+void Octree::loadFromBreadthFirst(const vector<uint8_t>& storage)
+{
+	queue < Octree* > file;
+	file.push(this);
+	_isEmpty = false;
+
+	int nbNodes = storage.size();
+	int ind = 0;
+
+	while (ind < nbNodes)
+	{
+		Octree* node = file.front();
+		file.pop();
+
+		uint8_t mask = storage.at(ind);
+		node->_childs = new Octree[8];
+		
+
+		for (int i = 0; i < 8; i++)
+		{
+			if (((mask & (128 >> i)) > 0))
+			{
+				node->_childs[i]._isEmpty = false;
+				file.push(&(node->_childs[i]));
+			}
+		}
+
+		ind++;
 	}
 }
 

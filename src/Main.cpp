@@ -365,11 +365,14 @@ int main (int argc, char ** argv) {
     init (argc >= 2 ? argv[1] : "models/rhino.off");
 
 	//========================= Ajout VoxelDAG Project ================
+
 	cout << "Mesh loaded : " << mesh.T.size() << " triangles" << endl;
 
+	// Shere mesh loading only for BSHtree display
 	sphereMesh.loadOFF(argc == 3 ? argv[2] : "models/sphere.off");
 	cout << "Sphere mesh loaded." << endl;
 
+	// BSHtree computing
 	mesh.computeBSH(9);
 	maxBSHlevel = mesh.BSHtree->maxCompleteLevel(); // Limite de l'affichage du BSH
 
@@ -378,23 +381,45 @@ int main (int argc, char ** argv) {
 	cout << "	Max complete level : " << mesh.BSHtree->maxCompleteLevel() << endl;
 	cout << "	Max taille feuille : " << mesh.BSHtree->maxTailleFeuille() << endl;
 
-	VoxelGrid voxGrid(64);
+	// Mesh to VoxelGrid
+	VoxelGrid voxGrid(32);
 	voxGrid.fillGridBSH(mesh); // convertit le mesh en VoxelGrid
 	cout << "Mesh -> VoxelGrid done : " << voxGrid.nbVoxelPleins() << " voxels pleins" << endl;
 
+	// VoxelGrid to Octree 
 	Octree tree;
 	tree.fillOctreeWithVoxelGrid(voxGrid);
 	cout << "VoxelGrid -> Octree done" << endl;
+
+	// Octree to Breadth First encoding
+	vector<uint8_t> storage;
+	tree.encodeBreadthFirst(storage);
+	cout << "Octree -> Breath First Encoding done : " << storage.size() << " bytes" << endl;
+	tree = Octree();
+	// Breadth First encoding to Octree
+	tree.loadFromBreadthFirst(storage);
+	cout << "Breath First Encoding -> Octree done" << endl;
+
+	// Octree to Efficient Pointer encoding
+	vector<uint8_t> masks;
+	vector<uint32_t> pts;
+	tree.encodeWithPointers(masks, pts);
+	cout << "Octree -> Pointer Encoding done : " << masks.size() + 4*pts.size() << " bytes" << endl;
+	// Efficient Pointer encoding to Octree
+	tree = Octree();
+	tree.loadFromPointerEncoding(masks, pts);
+	cout << "Pointer Encoding -> Octree done" << endl;
+
+	//Octree to VoxelGrid
 	tree.convertOctreeToVoxelGrid(voxGrid);
 	cout << "Octree -> VoxelGrid done" << endl;
 
+	//VoxelGrid to Mesh
 	voxGrid.convertToMesh(voxelMesh);
 	cout << "VoxelGrid -> Mesh done : " << voxelMesh.Q.size() << " quads" << endl;
 
-	//displayMask(tree.computeMask());
-	//cout << maskValue(tree.computeMask()) << endl;
-
 	//========================= Fin des ajouts =========================
+
     glutIdleFunc (idle);
     glutDisplayFunc (display);
     glutKeyboardFunc (key);
