@@ -69,7 +69,9 @@ void printUsage () {
 		 << " q, <esc>: Quit" << std::endl << std::endl
 	     << " 1 : Original mesh display" << std::endl
 		 << " 2 : BSH tree display" << std::endl
-		 << " 3 : Voxel mesh display" << std::endl << std::endl;
+         << " 3 : Voxel mesh display" << std::endl
+         << " p : Increase BSH level" << std::endl
+		 << " m : Decrease BSH level" << std::endl << std::endl;
 }
 
 void usage () {
@@ -282,18 +284,16 @@ void key (unsigned char keyPressed, int x, int y) {
 		break;
 	case 'm':
 		BSHdisplayLevel = max(BSHdisplayLevel - 1, 0);
+        cout << "BSH level : " << BSHdisplayLevel << endl;
 		break;
 	case '1':
 		displayMode = ORIGINAL_MESH;
-		cout << "Display : original mesh" << endl;
 		break;
 	case '2':
 		displayMode = BSH_TREE;
-		cout << "Display : BSH tree" << endl;
 		break;
 	case '3':
 		displayMode = VOXEL_MESH;
-		cout << "Display : voxel mesh" << endl;
 		break;
     default:
         printUsage ();
@@ -394,11 +394,11 @@ int main (int argc, char ** argv) {
 	// Octree to Breadth First encoding
 	vector<uint8_t> storage;
 	tree.encodeBreadthFirst(storage);
-	cout << "Octree -> Breath First Encoding done : " << storage.size() << " bytes" << endl;
+	cout << "Octree -> Breadth First Encoding done : " << storage.size() << " bytes" << endl;
 	tree = Octree();
 	// Breadth First encoding to Octree
 	tree.loadFromBreadthFirst(storage);
-	cout << "Breath First Encoding -> Octree done" << endl;
+	cout << "Breadth First Encoding -> Octree done" << endl;
 
 	// Octree to Efficient Pointer encoding
 	vector<uint8_t> masks;
