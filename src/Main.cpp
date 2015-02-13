@@ -375,20 +375,21 @@ int main (int argc, char ** argv) {
 	// BSHtree computing
 	mesh.computeBSH(9);
 	maxBSHlevel = mesh.BSHtree->maxCompleteLevel(); // Limite de l'affichage du BSH
-
 	cout << "BSH done." << endl;
-	cout << "	Hauteur = " << mesh.BSHtree->hauteur() << endl;
-	cout << "	Max complete level : " << mesh.BSHtree->maxCompleteLevel() << endl;
-	cout << "	Max taille feuille : " << mesh.BSHtree->maxTailleFeuille() << endl;
+	//cout << "	Hauteur = " << mesh.BSHtree->hauteur() << endl;
+	//cout << "	Max complete level : " << mesh.BSHtree->maxCompleteLevel() << endl;
+	//cout << "	Max taille feuille : " << mesh.BSHtree->maxTailleFeuille() << endl;
 
 	// Mesh to VoxelGrid
-	VoxelGrid voxGrid(32);
-	voxGrid.fillGridBSH(mesh); // convertit le mesh en VoxelGrid
+	VoxelGrid voxGrid(64);
+	voxGrid.fillGridBSH(mesh);
+	voxGrid.emptyInteriorVoxels();
 	cout << "Mesh -> VoxelGrid done : " << voxGrid.nbVoxelPleins() << " voxels pleins" << endl;
 
 	// VoxelGrid to Octree 
 	Octree tree;
 	tree.fillOctreeWithVoxelGrid(voxGrid);
+	tree.cutEmptyNodes();
 	cout << "VoxelGrid -> Octree done" << endl;
 
 	// Octree to Breadth First encoding

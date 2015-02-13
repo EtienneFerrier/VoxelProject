@@ -3,29 +3,35 @@
 #include <queue>
 #include "VoxelGrid.h"
 
+
 void displayMask(uint8_t mask);
 int maskValue(uint8_t mask);
 
 class Octree
 {
-	Octree* _childs;	//Contient les 8 Octree fils
-	bool _isEmpty;
+	// Champs
+	Octree* _childs;	//Contient NULL (si feuille) ou un tableau de 8 Octree fils
+	bool _isEmpty;		//true par default
 
+
+
+	// Fonctions recursives servant au fonctions public
 	void fillOctree(VoxelGrid& voxGrid, int x, int y, int z, int size); // Fonction recursive servant a fillOctreeWithVoxelGrid
 	void convertOctreeBlockToVoxelGrid(VoxelGrid& voxGrid, int x, int y, int z, int size); // Fonction recursive servant a convertOctreeToVoxelGrid
+	void encodeWithPointersRec(vector<uint8_t>& masks, vector<uint32_t>& pointers, uint32_t& index); // Fonction recursive servant a encodeWithPointers
+	void loadFromPointerEncodingRec(const vector<uint8_t>& masks, const vector<uint32_t>& pointers, int index); // Fonction recursive servant a loadFromPointerEncoding
 
 public:
-	Octree();			// Cree un Octree vide
+	Octree();
 	~Octree();
 	bool isEmpty();
 	bool isLeaf();
 	bool isFatherOfLeaves();
-	void fillOctreeWithVoxelGrid(VoxelGrid& voxGrid); // Remplit un Octree avec le contenu d'une VoxelGrid
-	void convertOctreeToVoxelGrid(VoxelGrid& voxGrid); // Remplit une VoxelGrid avec le contenu d'un Octree
+	void fillOctreeWithVoxelGrid(VoxelGrid& voxGrid);
+	void cutEmptyNodes();
+	void convertOctreeToVoxelGrid(VoxelGrid& voxGrid);
 	uint8_t computeMask();
-	void encodeWithPointersRec(vector<uint8_t>& masks, vector<uint32_t>& pointers, uint32_t& index); // TODO : Debug
-	void encodeWithPointers(vector<uint8_t>& masks, vector<uint32_t>& pointers); // TODO : Debug
-	void loadFromPointerEncodingRec(const vector<uint8_t>& masks, const vector<uint32_t>& pointers, int index);
+	void encodeWithPointers(vector<uint8_t>& masks, vector<uint32_t>& pointers);
 	void loadFromPointerEncoding(const vector<uint8_t>& masks, const vector<uint32_t>& pointers);
 	void encodeBreadthFirst(vector<uint8_t>& storage);
 	void loadFromBreadthFirst(const vector<uint8_t>& storage);

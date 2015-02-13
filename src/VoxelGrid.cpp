@@ -1,5 +1,6 @@
 #include "VoxelGrid.h"
 
+// Cree une grille de taille voulue et l'initialise a vide
 VoxelGrid::VoxelGrid(int size)
 {
 	_size = size;
@@ -7,11 +8,13 @@ VoxelGrid::VoxelGrid(int size)
 	setAllGrid(false);
 }
 
+// Efface tout le contenu de la grille
 VoxelGrid::~VoxelGrid()
 {
 	delete[] _content;
 }
 
+// Convertit un mesh en voxelGrid (en prenant l'interieur).
 void VoxelGrid::fillGrid(Mesh& m)
 {
 	float step = 2.f / ((float)_size);
@@ -25,6 +28,7 @@ void VoxelGrid::fillGrid(Mesh& m)
 			}
 }
 
+// Comme fillGrid mais utilise la structure BSH du mesh.
 void VoxelGrid::fillGridBSH(Mesh& m)
 {
 	float step = 2.f / ((float)_size);
@@ -40,7 +44,7 @@ void VoxelGrid::fillGridBSH(Mesh& m)
 
 }
 
-//Est 3 fois plus lente que fillGrid. Peut etre optimisée.
+// Comme fillGridBSH mais en ne conservant que les voxels sur le bord du mesh. (plus lent)
 void VoxelGrid::fillSparseGridBSH(Mesh& m)
 {
 	float step = 2.f / ((float)_size);
@@ -56,6 +60,7 @@ void VoxelGrid::fillSparseGridBSH(Mesh& m)
 
 }
 
+// Convertit un mesh en format OFF en voxelGrid
 void VoxelGrid::loadOFF(const std::string & filename)
 {
 	Mesh m;
@@ -63,6 +68,24 @@ void VoxelGrid::loadOFF(const std::string & filename)
 	fillGrid(m);
 }
 
+// Efface les voxels qui sont entoures de voxels dans toutes les directions (voxels invisibles)
+void VoxelGrid::emptyInteriorVoxels()
+{
+	for (int i = 1; i < _size-1; i++)
+		for (int j = 1; j < _size-1; j++)
+			for (int k = 1; k < _size-1; k++){
+		if (getVoxel(i, j, k)
+			&& getVoxel(i + 1, j, k)
+			&& getVoxel(i - 1, j, k)
+			&& getVoxel(i, j - 1, k)
+			&& getVoxel(i, j + 1, k)
+			&& getVoxel(i, j, k - 1)
+			&& getVoxel(i, j, k + 1))
+				setVoxel(i, j, k, false);
+			}
+}
+
+// Donne le nombre de voxels pleins de la grille
 int VoxelGrid::nbVoxelPleins()
 {
 	int nb = 0;
@@ -75,6 +98,7 @@ int VoxelGrid::nbVoxelPleins()
 	return nb;
 }
 
+// Remplit la grille avec "value" dans chaque case
 void VoxelGrid::setAllGrid(bool value)
 {
 	for (int x = 0; x < _size; x++)
@@ -83,6 +107,7 @@ void VoxelGrid::setAllGrid(bool value)
 				_content[(x*_size + y)*_size + z] = value;
 }
 
+// Retourne le contenu d'une case
 inline bool VoxelGrid::getVoxel(int x, int y, int z)
 {
 	if (x < 0 || x >= _size || y < 0 || y >= _size || z < 0 || z >= _size)
@@ -93,6 +118,7 @@ inline bool VoxelGrid::getVoxel(int x, int y, int z)
 	else return _content[(x*_size + y)*_size + z];
 }
 
+// Remplit une case avec "value"
 inline void VoxelGrid::setVoxel(int x, int y, int z, bool value)
 {
 	if (x < 0 || x >= _size || y < 0 || y >= _size || z < 0 || z >= _size)
@@ -103,11 +129,13 @@ inline void VoxelGrid::setVoxel(int x, int y, int z, bool value)
 	else _content[(x*_size + y)*_size + z] = value;
 }
 
+// Retourne la taille de grille
 int VoxelGrid::getSize()
 {
 	return _size;
 }
 
+// Affiche une coupe dans la console
 void VoxelGrid::displayCut(int zAxis)
 {
 	for (int i = 0; i < _size; i++)
@@ -118,11 +146,13 @@ void VoxelGrid::displayCut(int zAxis)
 	}
 }
 
+// Donne l'index en 1D d'un vertex de coordonnees (i, j, k)
 inline int VoxelGrid::vertexIndex(int i, int j, int k)
 {
 	return ((_size + 1)*i + j)*(_size + 1) + k;
 }
 
+//  Convertit le voxelGrid en mesh
 void VoxelGrid::convertToMesh(Mesh& m)
 {
 	m.V = vector<Vertex>((_size + 1)*(_size + 1)*(_size + 1));
