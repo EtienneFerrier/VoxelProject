@@ -23,8 +23,22 @@ public:
 	void emptyInteriorVoxels(); 
 	int nbVoxelPleins(); 
 	void setAllGrid(bool value); 
-	inline bool getVoxel(int x, int y, int z); 
-	inline void setVoxel(int x, int y, int z, bool value); 
+	inline bool getVoxel(int x, int y, int z) {
+		if (x < 0 || x >= _size || y < 0 || y >= _size || z < 0 || z >= _size) {
+			cout << "getVoxel hors champ" << endl;
+			return false;
+		} else {
+			return _content[(x*_size + y)*_size + z];
+		}
+	}
+	inline void setVoxel(int x, int y, int z, bool value) {
+		if (x < 0 || x >= _size || y < 0 || y >= _size || z < 0 || z >= _size) {
+			cout << "setVoxel hors champ" << endl;
+			return;
+		} else {
+			_content[(x*_size + y)*_size + z] = value;
+		}
+	}
 	int getSize(); 
 	void displayCut(int zAxis);
 	inline int vertexIndex(int i, int j, int k);

@@ -3,14 +3,14 @@
 // Cree un Octree feuille et vide
 Octree::Octree()
 {
-	_childs = NULL;
+	_children = NULL;
 	_isEmpty = true;
 }
 
 // Efface un Octree et tout son sous arbre
 Octree::~Octree()
 {
-	delete[] _childs;
+	delete[] _children;
 }
 
 // Renvoie true lorsque la region decrite par l'Octree est vide
@@ -22,21 +22,21 @@ bool Octree::isEmpty()
 // Renvoie true lorsqu'un Octree est une feuille i.e. décrit un voxel
 bool Octree::isLeaf()
 {
-	return _childs == NULL;
+	return _children == NULL;
 }
 
 // Renvoie true lorsqu'un Octree est un niveau juste au dessus des feuilles (i.e. tous ses fils sont des feuilles)
 bool Octree::isFatherOfLeaves()
 {
-	return _childs != NULL &&
-		_childs[0].isLeaf() &&
-		_childs[1].isLeaf() &&
-		_childs[2].isLeaf() &&
-		_childs[3].isLeaf() &&
-		_childs[4].isLeaf() &&
-		_childs[5].isLeaf() &&
-		_childs[6].isLeaf() &&
-		_childs[7].isLeaf();
+	return _children != NULL &&
+		_children[0].isLeaf() &&
+		_children[1].isLeaf() &&
+		_children[2].isLeaf() &&
+		_children[3].isLeaf() &&
+		_children[4].isLeaf() &&
+		_children[5].isLeaf() &&
+		_children[6].isLeaf() &&
+		_children[7].isLeaf();
 }
 
 // Remplit un Octree complet avec une region de l'espace decrite par voxGrid aux coordonnees [x, x + size]*[y, y + size]*[z, z + size]
@@ -48,27 +48,27 @@ void Octree::fillOctree(VoxelGrid& voxGrid, int x, int y, int z, int size)
 	}
 	else
 	{
-		_childs = new Octree[8];
+		_children = new Octree[8];
 
 		int halfSize = size / 2;
 
-		_childs[0].fillOctree(voxGrid, x, y, z, halfSize);
-		_childs[1].fillOctree(voxGrid, x + halfSize, y, z, halfSize);
-		_childs[2].fillOctree(voxGrid, x + halfSize, y + halfSize, z, halfSize);
-		_childs[3].fillOctree(voxGrid, x, y + halfSize, z, halfSize);
-		_childs[4].fillOctree(voxGrid, x, y, z + halfSize, halfSize);
-		_childs[5].fillOctree(voxGrid, x + halfSize, y, z + halfSize, halfSize);
-		_childs[6].fillOctree(voxGrid, x + halfSize, y + halfSize, z + halfSize, halfSize);
-		_childs[7].fillOctree(voxGrid, x, y + halfSize, z + halfSize, halfSize);
+		_children[0].fillOctree(voxGrid, x, y, z, halfSize);
+		_children[1].fillOctree(voxGrid, x + halfSize, y, z, halfSize);
+		_children[2].fillOctree(voxGrid, x + halfSize, y + halfSize, z, halfSize);
+		_children[3].fillOctree(voxGrid, x, y + halfSize, z, halfSize);
+		_children[4].fillOctree(voxGrid, x, y, z + halfSize, halfSize);
+		_children[5].fillOctree(voxGrid, x + halfSize, y, z + halfSize, halfSize);
+		_children[6].fillOctree(voxGrid, x + halfSize, y + halfSize, z + halfSize, halfSize);
+		_children[7].fillOctree(voxGrid, x, y + halfSize, z + halfSize, halfSize);
 
-		_isEmpty = _childs[0]._isEmpty &&
-				_childs[1]._isEmpty &&
-				_childs[2]._isEmpty &&
-				_childs[3]._isEmpty &&
-				_childs[4]._isEmpty &&
-				_childs[5]._isEmpty &&
-				_childs[6]._isEmpty &&
-				_childs[7]._isEmpty;
+		_isEmpty = _children[0]._isEmpty &&
+				_children[1]._isEmpty &&
+				_children[2]._isEmpty &&
+				_children[3]._isEmpty &&
+				_children[4]._isEmpty &&
+				_children[5]._isEmpty &&
+				_children[6]._isEmpty &&
+				_children[7]._isEmpty;
 
 	}
 }
@@ -83,11 +83,11 @@ void Octree::fillOctreeWithVoxelGrid(VoxelGrid& voxGrid)
 void Octree::cutEmptyNodes()
 {
 	if (_isEmpty)
-		delete[] _childs;
-	else if (_childs != NULL)
+		delete[] _children;
+	else if (_children != NULL)
 	{
 		for (int i = 0; i < 8; i++)
-			_childs[i].cutEmptyNodes();
+			_children[i].cutEmptyNodes();
 	}
 }
 
@@ -109,14 +109,14 @@ void Octree::convertOctreeBlockToVoxelGrid(VoxelGrid& voxGrid, int x, int y, int
 	{
 		int halfSize = size / 2;
 
-		_childs[0].convertOctreeBlockToVoxelGrid(voxGrid, x, y, z, halfSize);
-		_childs[1].convertOctreeBlockToVoxelGrid(voxGrid, x + halfSize, y, z, halfSize);
-		_childs[2].convertOctreeBlockToVoxelGrid(voxGrid, x + halfSize, y + halfSize, z, halfSize);
-		_childs[3].convertOctreeBlockToVoxelGrid(voxGrid, x, y + halfSize, z, halfSize);
-		_childs[4].convertOctreeBlockToVoxelGrid(voxGrid, x, y, z + halfSize, halfSize);
-		_childs[5].convertOctreeBlockToVoxelGrid(voxGrid, x + halfSize, y, z + halfSize, halfSize);
-		_childs[6].convertOctreeBlockToVoxelGrid(voxGrid, x + halfSize, y + halfSize, z + halfSize, halfSize);
-		_childs[7].convertOctreeBlockToVoxelGrid(voxGrid, x, y + halfSize, z + halfSize, halfSize);
+		_children[0].convertOctreeBlockToVoxelGrid(voxGrid, x, y, z, halfSize);
+		_children[1].convertOctreeBlockToVoxelGrid(voxGrid, x + halfSize, y, z, halfSize);
+		_children[2].convertOctreeBlockToVoxelGrid(voxGrid, x + halfSize, y + halfSize, z, halfSize);
+		_children[3].convertOctreeBlockToVoxelGrid(voxGrid, x, y + halfSize, z, halfSize);
+		_children[4].convertOctreeBlockToVoxelGrid(voxGrid, x, y, z + halfSize, halfSize);
+		_children[5].convertOctreeBlockToVoxelGrid(voxGrid, x + halfSize, y, z + halfSize, halfSize);
+		_children[6].convertOctreeBlockToVoxelGrid(voxGrid, x + halfSize, y + halfSize, z + halfSize, halfSize);
+		_children[7].convertOctreeBlockToVoxelGrid(voxGrid, x, y + halfSize, z + halfSize, halfSize);
 	}
 }
 
@@ -147,10 +147,10 @@ int maskValue(uint8_t mask)
 	return res;
 }
 
-// Encode sur 8 bits l'information "_childs[i] contient de la matiere" pour tout i de 0 a 7
+// Encode sur 8 bits l'information "_children[i] contient de la matiere" pour tout i de 0 a 7
 uint8_t Octree::computeMask()
 {
-	if (_childs == NULL)
+	if (_children == NULL)
 	{
 		cout << "No mask for leaves" << endl;
 		return 0;
@@ -160,7 +160,7 @@ uint8_t Octree::computeMask()
 		uint8_t m = 0;
 		for (int i = 0; i < 8; i++)
 		{
-			if (!_childs[i]._isEmpty)
+			if (!_children[i]._isEmpty)
 				m |= 128 >> i;
 		}
 		return m;
@@ -176,9 +176,9 @@ void Octree::encodeWithPointersRec(vector<uint8_t>& masks, vector<uint32_t>& poi
 	//Ecriture dans masks
 	for (int i = 0; i < 8; i++)
 	{
-		if (!_childs[i]._isEmpty && !_childs[i].isLeaf())
+		if (!_children[i]._isEmpty && !_children[i].isLeaf())
 		{
-			mask = _childs[i].computeMask(); // Encodage du masque du fils i
+			mask = _children[i].computeMask(); // Encodage du masque du fils i
 			masks.push_back(mask);
 			index++;
 			pointers.push_back(0); // Un pointeur non encore decide est mis a zero
@@ -188,15 +188,15 @@ void Octree::encodeWithPointersRec(vector<uint8_t>& masks, vector<uint32_t>& poi
 	//Ecriture dans pointers
 	for (int i = 0; i < 8; i++)
 	{
-		if (!_childs[i]._isEmpty && !_childs[i].isLeaf())
+		if (!_children[i]._isEmpty && !_children[i].isLeaf())
 		{
-			if (_childs[i].isFatherOfLeaves()) // Ce test permet de reperer le dernier niveau de l'arbre dans le tableau pointers (la valeur de pointers est alors 0)
+			if (_children[i].isFatherOfLeaves()) // Ce test permet de reperer le dernier niveau de l'arbre dans le tableau pointers (la valeur de pointers est alors 0)
 				pointers[firstEmptyChildPt] = 0;
 			else
 				pointers[firstEmptyChildPt] = index; // On retourne écrire le poiteur vers le premier fils du first empty child
 
 			firstEmptyChildPt++;
-			_childs[i].encodeWithPointersRec(masks, pointers, index); // On encode les fils du fils i
+			_children[i].encodeWithPointersRec(masks, pointers, index); // On encode les fils du fils i
 		}
 	}
 
@@ -224,11 +224,11 @@ void Octree::encodeWithPointers(vector<uint8_t>& masks, vector<uint32_t>& pointe
 void Octree::loadFromPointerEncodingRec(const vector<uint8_t>& masks, const vector<uint32_t>& pointers, int index)
 {
 	uint8_t mask = masks[index];
-	_childs = new Octree[8];
+	_children = new Octree[8];
 
 	for (int i = 0; i < 8; i++)
 	{
-		_childs[i]._isEmpty = ((mask & (128 >> i)) == 0);
+		_children[i]._isEmpty = ((mask & (128 >> i)) == 0);
 	}
 
 	if (pointers[index] > 0)
@@ -236,9 +236,9 @@ void Octree::loadFromPointerEncodingRec(const vector<uint8_t>& masks, const vect
 		int tmp = 0;
 		for (int i = 0; i < 8; i++)
 		{
-			if (!_childs[i]._isEmpty)
+			if (!_children[i]._isEmpty)
 			{
-				_childs[i].loadFromPointerEncodingRec(masks, pointers, pointers[index] + tmp);
+				_children[i].loadFromPointerEncodingRec(masks, pointers, pointers[index] + tmp);
 				tmp++;
 			}
 		}
@@ -253,66 +253,54 @@ void Octree::loadFromPointerEncoding(const vector<uint8_t>& masks, const vector<
 		return;
 	else
 	{
-		_childs = new Octree[8];
+		_children = new Octree[8];
 		_isEmpty = false;
 		loadFromPointerEncodingRec(masks, pointers, 0);
 	}
 	
 }
 
-// Encode un Octree en listant de maniere "breath first" les masks des noeuds dans un tableau.
+// Encode un Octree en listant de maniere "breadth first" les masks des noeuds dans un tableau.
 void Octree::encodeBreadthFirst(vector<uint8_t>& storage)
 {
-	queue < Octree* > file; // file ne signifie pas "Fichier" mais bien "Queue".
+	queue<Octree*> file; // file ne signifie pas "Fichier" mais bien "Queue".
 	file.push(this);
 
-	while (!file.empty())
-	{
+	while (!file.empty()) {
 		Octree* node = file.front();
 		file.pop();
 
 		storage.push_back(node->computeMask());
 
-		for (int i = 0; i < 8; i++)
-		{
-			if (!node->_childs[i].isEmpty() && !node->_childs[i].isLeaf()) // 2e condition => pas de feuille ajoutée à la file.
-			{
-				file.push(&(node->_childs[i]));
-			}
+		for (int i = 0; i < 8; i++) {
+			if (!node->_children[i]._isEmpty && !node->_children[i].isLeaf()) // 2e condition => pas de feuille ajoutée à la file. {
+				file.push(&(node->_children[i]));
 		}
-		
 	}
 }
 
-// Charge un Octree a partir d'un encodage de maniere "breath first" des masks des noeuds dans un tableau.
+// Charge un Octree a partir d'un encodage de maniere "breadth first" des masks des noeuds dans un tableau.
 void Octree::loadFromBreadthFirst(const vector<uint8_t>& storage)
 {
-	queue < Octree* > file;
+	queue<Octree*> file;
 	file.push(this);
 	_isEmpty = false;
 
 	int nbNodes = storage.size();
-	int ind = 0;
 
-	while (ind < nbNodes)
-	{
+	for(int ind = 0; ind < nbNodes; ind++) {
 		Octree* node = file.front();
 		file.pop();
 
-		uint8_t mask = storage.at(ind);
-		node->_childs = new Octree[8];
-		
+		uint8_t mask = storage[ind];
+		node->_children = new Octree[8];
 
-		for (int i = 0; i < 8; i++)
-		{
-			if (((mask & (128 >> i)) > 0))
-			{
-				node->_childs[i]._isEmpty = false;
-				file.push(&(node->_childs[i]));
+		for (int i = 0; i < 8; i++) {
+			if (((mask & (128 >> i)) > 0)) {
+				node->_children[i]._isEmpty = false;
+				file.push(&(node->_children[i]));
 			}
 		}
-
-		ind++;
 	}
 }
 

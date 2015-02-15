@@ -10,7 +10,7 @@ int maskValue(uint8_t mask);
 class Octree
 {
 	// Champs
-	Octree* _childs;	//Contient NULL (si feuille) ou un tableau de 8 Octree fils
+	Octree* _children;	//Contient NULL (si feuille) ou un tableau de 8 Octree fils
 	bool _isEmpty;		//true par default
 
 

@@ -240,7 +240,7 @@ inline bool Node::intersectionInBox(const std::vector<Vertex>& V, const Ray& ray
 
 		for (unsigned int i = 0; i < trianglesContenus.size(); i++)
 		{
-			if (triangle_intersection(V[trianglesContenus[i].v[0]].p, V[trianglesContenus[i].v[1]].p, V[trianglesContenus[i].v[2]].p, ray._o, ray._dir, &t) && abs(targetDistance - t) < boxSize/2.f )
+			if (triangle_intersection(V[trianglesContenus[i].v[0]].p, V[trianglesContenus[i].v[1]].p, V[trianglesContenus[i].v[2]].p, ray._o, ray._dir, &t) && std::abs(targetDistance - t) < boxSize/2.f )
 				return true;
 		}
 		return false;

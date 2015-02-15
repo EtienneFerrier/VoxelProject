@@ -21,8 +21,7 @@ void VoxelGrid::fillGrid(Mesh& m)
 
 	for (int i = 0; i < _size; i++)
 		for (int j = 0; j < _size; j++)
-			for (int k = 0; k < _size; k++)
-			{
+			for (int k = 0; k < _size; k++) {
 				if (m.estInterieur(Vec3f(-1.f + step / 2.f + i*step, -1.f + step / 2.f + j*step, -1.f + step / 2.f + k*step)))
 					setVoxel(i, j, k, true);
 			}
@@ -105,28 +104,6 @@ void VoxelGrid::setAllGrid(bool value)
 		for (int y = 0; y < _size; y++)
 			for (int z = 0; z < _size; z++)
 				_content[(x*_size + y)*_size + z] = value;
-}
-
-// Retourne le contenu d'une case
-inline bool VoxelGrid::getVoxel(int x, int y, int z)
-{
-	if (x < 0 || x >= _size || y < 0 || y >= _size || z < 0 || z >= _size)
-	{
-		cout << "getVoxel hors champ" << endl;
-		return false;
-	}
-	else return _content[(x*_size + y)*_size + z];
-}
-
-// Remplit une case avec "value"
-inline void VoxelGrid::setVoxel(int x, int y, int z, bool value)
-{
-	if (x < 0 || x >= _size || y < 0 || y >= _size || z < 0 || z >= _size)
-	{
-		cout << "setVoxel hors champ" << endl;
-		return;
-	}
-	else _content[(x*_size + y)*_size + z] = value;
 }
 
 // Retourne la taille de grille

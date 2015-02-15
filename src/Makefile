@@ -5,7 +5,7 @@ LIBS =  -lglut -lGLU -lGL -lm #-lGLEW
 CC = clang
 CPP = clang++
 
-FLAGS = -Wall -g -O2 -std=c++11 #-DGPU_SHADERS
+FLAGS = -Wall -g -std=c++11 #-DGPU_SHADERS
 
 CFLAGS = $(FLAGS)
 CXXFLAGS = $(FLAGS)
