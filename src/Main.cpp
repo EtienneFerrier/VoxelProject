@@ -51,6 +51,7 @@ Mesh mesh;
 Mesh sphereMesh;
 Mesh voxelMesh;
 
+using namespace std;
 
 void printUsage () {
 	std::cerr << std::endl 
@@ -405,8 +406,7 @@ int main (int argc, char ** argv) {
 	// Octree to Efficient Pointer encoding
 	vector<uint8_t> masks;
     vector<int> pointers;
-	vector<int> levels;
-	tree.encodeWithPointers(masks, pointers, levels);
+	tree.encodeWithPointers(masks, pointers);
 	cout << "Octree -> Pointer Encoding done : " << masks.size() + 4*pointers.size() << " bytes" << endl;
 	// Efficient Pointer encoding to Octree
 	tree = Octree();

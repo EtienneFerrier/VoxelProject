@@ -3,7 +3,6 @@
 #include "Mesh.h"
 #include <vector>
 
-using namespace std;
 
 // On suppose que la grille est centrée en (0, 0, 0)
 // On suppose que la grille est de taille 2 de côté
@@ -25,7 +24,7 @@ public:
 	void setAllGrid(bool value); 
 	inline bool getVoxel(int x, int y, int z) {
 		if (x < 0 || x >= _size || y < 0 || y >= _size || z < 0 || z >= _size) {
-			cout << "getVoxel hors champ" << endl;
+			std::cout << "getVoxel hors champ" << std::endl;
 			return false;
 		} else {
 			return _content[(x*_size + y)*_size + z];
@@ -33,7 +32,7 @@ public:
 	}
 	inline void setVoxel(int x, int y, int z, bool value) {
 		if (x < 0 || x >= _size || y < 0 || y >= _size || z < 0 || z >= _size) {
-			cout << "setVoxel hors champ" << endl;
+			std::cout << "setVoxel hors champ" << std::endl;
 			return;
 		} else {
 			_content[(x*_size + y)*_size + z] = value;
