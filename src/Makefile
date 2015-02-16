@@ -18,7 +18,7 @@ clean:
 	rm -f  *~  $(CIBLE) $(OBJS)
 
 Camera.o: Camera.h Vec3.h
-Main.o: Vec3.h Camera.h Vertex.h Triangle.h Mesh.h Quad.h Ray.h Node.h VoxelGrid.h Octree.h #Shader.h
+Main.o: Vec3.h Camera.h Vertex.h Triangle.h Mesh.h Quad.h Ray.h Node.h VoxelGrid.h VoxelDAG.h Octree.h #Shader.h
 Mesh.o: Mesh.h Triangle.h Vertex.h Ray.h Quad.h Node.h Vec3.h
 Node.o: Node.h Mesh.h Triangle.h Vertex.h Ray.h Quad.h Vec3.h
 Octree.o: Octree.h VoxelGrid.h Mesh.h Triangle.h Vertex.h Ray.h Quad.h Node.h Vec3.h

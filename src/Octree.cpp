@@ -1,5 +1,27 @@
 #include "Octree.h"
 
+using namespace std;
+
+static const uint32_t BitCount[] = {
+    0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4,
+    1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+    1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+    1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+    3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+    1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
+    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+    3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+    2, 3, 3, 4, 3, 4, 4, 5, 3, 4, 4, 5, 4, 5, 5, 6,
+    3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+    3, 4, 4, 5, 4, 5, 5, 6, 4, 5, 5, 6, 5, 6, 6, 7,
+    4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8
+};
+
+
 // Cree un Octree feuille et vide
 Octree::Octree()
 {
@@ -37,6 +59,16 @@ bool Octree::isFatherOfLeaves()
 		_children[5].isLeaf() &&
 		_children[6].isLeaf() &&
 		_children[7].isLeaf();
+}
+
+vector<Octree*> Octree::children() {
+	vector<Octree*> result;
+	for (int i = 0; i < 8; ++i) {
+		if (_children != NULL && !_children[i]._isEmpty) {
+			result.push_back(&(_children[i]));
+		}
+	}
+	return result;
 }
 
 // Remplit un Octree complet avec une region de l'espace decrite par voxGrid aux coordonnees [x, x + size]*[y, y + size]*[z, z + size]
@@ -82,10 +114,10 @@ void Octree::fillOctreeWithVoxelGrid(VoxelGrid& voxGrid)
 // Enleve et efface les sous arbres completement vides de l'Octree
 void Octree::cutEmptyNodes()
 {
-	if (_isEmpty)
+	if (_isEmpty) {
 		delete[] _children;
-	else if (_children != NULL)
-	{
+		_children = NULL;
+	} else if (_children != NULL) {
 		for (int i = 0; i < 8; i++)
 			_children[i].cutEmptyNodes();
 	}
@@ -129,37 +161,22 @@ void Octree::convertOctreeToVoxelGrid(VoxelGrid& voxGrid)
 // Affiche les 8 bits de mask en binaire dans la console
 void displayMask(uint8_t mask)
 {
-	for (int i = 0; i < 8; i++)
-	{
+	for (int i = 0; i < 8; i++) {
 		cout << ((mask & (128 >> i)) > 0);
 	}
 	cout << endl;
 }
 
-// Renvoie le nombre du bits a 1 dans mask
-int maskValue(uint8_t mask)
-{
-	int res = 0;
-	for (int i = 0; i < 8; i++)
-	{
-		res += ((mask & (128 >> i)) > 0);
-	}
-	return res;
-}
 
 // Encode sur 8 bits l'information "_children[i] contient de la matiere" pour tout i de 0 a 7
 uint8_t Octree::computeMask()
 {
-	if (_children == NULL)
-	{
+	if (_children == NULL) {
 		cout << "No mask for leaves" << endl;
 		return 0;
-	}
-	else
-	{
+	} else {
 		uint8_t m = 0;
-		for (int i = 0; i < 8; i++)
-		{
+		for (int i = 0; i < 8; i++) {
 			if (!_children[i]._isEmpty)
 				m |= 128 >> i;
 		}
@@ -168,38 +185,35 @@ uint8_t Octree::computeMask()
 }
 
 // Encode les fils de l'Octree courant et leur sous arbre dans les tableaux masks et pointers a partir de l'index en entree.
-void Octree::encodeWithPointersRec(vector<uint8_t>& masks, vector<uint32_t>& pointers, uint32_t& index)
+void Octree::encodeWithPointersRec(vector<uint8_t>& masks, vector<int>& pointers, vector<int>& levels, int& index)
 {
-	uint32_t firstEmptyChildPt = index; // index du premier fils dont il faudra remplir le pointeur une fois le sous arbre associe encode
-	uint8_t mask;
+	// index du premier fils dont il faudra remplir le pointeur une fois le sous arbre associe encode
+	auto firstEmptyChildPt = index; 
+	int level = levels.back() + 1;
 
-	//Ecriture dans masks
-	for (int i = 0; i < 8; i++)
-	{
-		if (!_children[i]._isEmpty && !_children[i].isLeaf())
-		{
-			mask = _children[i].computeMask(); // Encodage du masque du fils i
-			masks.push_back(mask);
+	vector<Octree*> myChildren = children();
+	if (!isFatherOfLeaves()) {
+		// Ecriture dans masks
+		for (auto child : myChildren) {
+			masks.push_back(child->computeMask());
 			index++;
 			pointers.push_back(0); // Un pointeur non encore decide est mis a zero
+			levels.push_back(level);
 		}
-	}
-
-	//Ecriture dans pointers
-	for (int i = 0; i < 8; i++)
-	{
-		if (!_children[i]._isEmpty && !_children[i].isLeaf())
-		{
-			if (_children[i].isFatherOfLeaves()) // Ce test permet de reperer le dernier niveau de l'arbre dans le tableau pointers (la valeur de pointers est alors 0)
+		// Ecriture dans pointers
+		for (auto child : myChildren) {
+			// Ce test permet de reperer le dernier niveau de l'arbre dans le tableau pointers (la valeur de pointers est alors 0)
+			if (child->isFatherOfLeaves()) {
 				pointers[firstEmptyChildPt] = 0;
-			else
-				pointers[firstEmptyChildPt] = index; // On retourne écrire le poiteur vers le premier fils du first empty child
+			} else {
+				// On retourne écrire le poiteur vers le premier fils du first empty child
+				pointers[firstEmptyChildPt] = index; 
+			}
 
 			firstEmptyChildPt++;
-			_children[i].encodeWithPointersRec(masks, pointers, index); // On encode les fils du fils i
+			child->encodeWithPointersRec(masks, pointers, levels, index); // On encode les fils du fils i
 		}
 	}
-
 }
 
 /* Encode l'Octree dans 2 vecteurs dans lequel pour tout index i : 
@@ -207,37 +221,29 @@ void Octree::encodeWithPointersRec(vector<uint8_t>& masks, vector<uint32_t>& poi
   - pointers[i] encode l'index du premier fils non vide du noeud i. 
   - les fils non vides de chaque noeud ont des index successifs.
   - la racine est a l'index 0    */
-void Octree::encodeWithPointers(vector<uint8_t>& masks, vector<uint32_t>& pointers)
+void Octree::encodeWithPointers(vector<uint8_t>& masks, vector<int>& pointers, vector<int>& levels)
 {
-	uint32_t index = 0;
-	uint8_t mask = computeMask();
-	uint32_t childPt = 1; // Index du 1er fils de la racine
-
-	masks.push_back(mask);
-	index++;
-	pointers.push_back(childPt);
-
-	encodeWithPointersRec(masks, pointers, index);
+	masks.push_back(computeMask());
+	pointers.push_back(1);
+	levels.push_back(0);
+	int index = 1;
+	encodeWithPointersRec(masks, pointers, levels, index);
 }
 
 // Fonction recursive permettant de charger un noeud a partir d'un encodage sur 2 tableaux. Le noeud charge est encode a la position index des 2 tableaux.
-void Octree::loadFromPointerEncodingRec(const vector<uint8_t>& masks, const vector<uint32_t>& pointers, int index)
+void Octree::loadFromPointerEncodingRec(const vector<uint8_t>& masks, const vector<int>& pointers, int index)
 {
 	uint8_t mask = masks[index];
 	_children = new Octree[8];
 
-	for (int i = 0; i < 8; i++)
-	{
+	for (int i = 0; i < 8; i++) {
 		_children[i]._isEmpty = ((mask & (128 >> i)) == 0);
 	}
 
-	if (pointers[index] > 0)
-	{
+	if (pointers[index] > 0) {
 		int tmp = 0;
-		for (int i = 0; i < 8; i++)
-		{
-			if (!_children[i]._isEmpty)
-			{
+		for (int i = 0; i < 8; i++) {
+			if (!_children[i]._isEmpty) {
 				_children[i].loadFromPointerEncodingRec(masks, pointers, pointers[index] + tmp);
 				tmp++;
 			}
@@ -246,7 +252,7 @@ void Octree::loadFromPointerEncodingRec(const vector<uint8_t>& masks, const vect
 }
 
 // Charge un Octree a partir d'un encodage sur 2 tableaux
-void Octree::loadFromPointerEncoding(const vector<uint8_t>& masks, const vector<uint32_t>& pointers)
+void Octree::loadFromPointerEncoding(const vector<uint8_t>& masks, const vector<int>& pointers)
 {
 	uint8_t mask = masks[0];
 	if (mask == 0)
@@ -303,4 +309,3 @@ void Octree::loadFromBreadthFirst(const vector<uint8_t>& storage)
 		}
 	}
 }
-

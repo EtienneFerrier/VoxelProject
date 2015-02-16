@@ -20,6 +20,7 @@
 #include "Triangle.h"
 #include "Mesh.h"
 #include "VoxelGrid.h"
+#include "VoxelDAG.h"
 #include "Octree.h"
 #include "Node.h"
 
@@ -403,13 +404,17 @@ int main (int argc, char ** argv) {
 
 	// Octree to Efficient Pointer encoding
 	vector<uint8_t> masks;
-	vector<uint32_t> pts;
-	tree.encodeWithPointers(masks, pts);
-	cout << "Octree -> Pointer Encoding done : " << masks.size() + 4*pts.size() << " bytes" << endl;
+    vector<int> pointers;
+	vector<int> levels;
+	tree.encodeWithPointers(masks, pointers, levels);
+	cout << "Octree -> Pointer Encoding done : " << masks.size() + 4*pointers.size() << " bytes" << endl;
 	// Efficient Pointer encoding to Octree
 	tree = Octree();
-	tree.loadFromPointerEncoding(masks, pts);
+	tree.loadFromPointerEncoding(masks, pointers);
 	cout << "Pointer Encoding -> Octree done" << endl;
+
+    VoxelDAG dag;
+    dag.buildDAG(tree);
 
 	//Octree to VoxelGrid
 	tree.convertOctreeToVoxelGrid(voxGrid);

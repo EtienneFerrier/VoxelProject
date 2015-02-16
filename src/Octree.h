@@ -1,6 +1,8 @@
 #pragma once
 #include <cstdint>
 #include <queue>
+#include <vector>
+
 #include "VoxelGrid.h"
 
 
@@ -18,8 +20,8 @@ class Octree
 	// Fonctions recursives servant au fonctions public
 	void fillOctree(VoxelGrid& voxGrid, int x, int y, int z, int size); // Fonction recursive servant a fillOctreeWithVoxelGrid
 	void convertOctreeBlockToVoxelGrid(VoxelGrid& voxGrid, int x, int y, int z, int size); // Fonction recursive servant a convertOctreeToVoxelGrid
-	void encodeWithPointersRec(vector<uint8_t>& masks, vector<uint32_t>& pointers, uint32_t& index); // Fonction recursive servant a encodeWithPointers
-	void loadFromPointerEncodingRec(const vector<uint8_t>& masks, const vector<uint32_t>& pointers, int index); // Fonction recursive servant a loadFromPointerEncoding
+	void encodeWithPointersRec(vector<uint8_t>& masks, vector<int>& pointers, vector<int>& levels, int& index); // Fonction recursive servant a encodeWithPointers
+	void loadFromPointerEncodingRec(const std::vector<uint8_t>& masks, const std::vector<int>& pointers, int index); // Fonction recursive servant a loadFromPointerEncoding
 
 public:
 	Octree();
@@ -27,13 +29,14 @@ public:
 	bool isEmpty();
 	bool isLeaf();
 	bool isFatherOfLeaves();
+	std::vector<Octree*> children();
 	void fillOctreeWithVoxelGrid(VoxelGrid& voxGrid);
 	void cutEmptyNodes();
 	void convertOctreeToVoxelGrid(VoxelGrid& voxGrid);
 	uint8_t computeMask();
-	void encodeWithPointers(vector<uint8_t>& masks, vector<uint32_t>& pointers);
-	void loadFromPointerEncoding(const vector<uint8_t>& masks, const vector<uint32_t>& pointers);
-	void encodeBreadthFirst(vector<uint8_t>& storage);
-	void loadFromBreadthFirst(const vector<uint8_t>& storage);
+	void encodeWithPointers(std::vector<uint8_t>& masks, std::vector<int>& pointers, std::vector<int>& levels);
+	void loadFromPointerEncoding(const std::vector<uint8_t>& masks, const std::vector<int>& pointers);
+	void encodeBreadthFirst(std::vector<uint8_t>& storage);
+	void loadFromBreadthFirst(const std::vector<uint8_t>& storage);
 };
 

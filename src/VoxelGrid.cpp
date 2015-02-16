@@ -1,5 +1,7 @@
 #include "VoxelGrid.h"
 
+using namespace std;
+
 // Cree une grille de taille voulue et l'initialise a vide
 VoxelGrid::VoxelGrid(int size)
 {
