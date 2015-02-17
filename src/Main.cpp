@@ -381,9 +381,9 @@ int main (int argc, char ** argv) {
 	//cout << "	Max taille feuille : " << mesh.BSHtree->maxTailleFeuille() << endl;
 
 	// Mesh to VoxelGrid
-	VoxelGrid voxGrid(64);
+	VoxelGrid voxGrid(512);
 
-    voxGrid.fillGridBSH(mesh);
+    voxGrid.fillSparseGridBSH(mesh);
     voxGrid.emptyInteriorVoxels();
     cout << "Mesh -> VoxelGrid done : " << voxGrid.nbVoxelPleins() << " voxels pleins" << endl;
 	// VoxelGrid to Octree 

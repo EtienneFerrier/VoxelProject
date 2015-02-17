@@ -10,6 +10,7 @@ class VoxelGrid
 {
 	int _size; // Taille du cote de la grille
 	bool* _content; // Tableau de stockage du contenu
+	uint8_t* color;
 
 public:
 
