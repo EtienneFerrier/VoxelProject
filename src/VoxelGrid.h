@@ -33,7 +33,6 @@ public:
 	inline void setVoxel(int x, int y, int z, bool value) {
 		if (x < 0 || x >= _size || y < 0 || y >= _size || z < 0 || z >= _size) {
 			std::cout << "setVoxel hors champ" << std::endl;
-			return;
 		} else {
 			_content[(x*_size + y)*_size + z] = value;
 		}

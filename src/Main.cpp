@@ -93,6 +93,7 @@ void initLight () {
     
     glEnable (GL_LIGHT1);
     glEnable (GL_LIGHTING);
+    //glDisable (GL_LIGHTING);
 }
 
 void init (const char * modelFilename) {
@@ -158,8 +159,6 @@ void drawSphere(Vec3f center, float rad)
 }
 
 void draw () {
-    
-    
 	switch (displayMode)
 	{
 		case ORIGINAL_MESH:
@@ -191,19 +190,18 @@ void draw () {
 
 		case VOXEL_MESH:
 			glBegin(GL_QUADS);
+			for (unsigned int i = 0; i < voxelMesh.Q.size(); i++) {
+                glColor3f(1.0f, 0.5f, 0.0f);
 
-			for (unsigned int i = 0; i < voxelMesh.Q.size(); i++)
 				for (unsigned int j = 0; j < 4; j++) {
-				const Vertex & v = voxelMesh.V[voxelMesh.Q[i].v[j]];
+    				const Vertex & v = voxelMesh.V[voxelMesh.Q[i].v[j]];
 
-				glNormal3f(v.n[0], v.n[1], v.n[2]);
+    				glNormal3f(v.n[0], v.n[1], v.n[2]);
 
-				glVertex3f(v.p[0], v.p[1], v.p[2]);
-
+    				glVertex3f(v.p[0], v.p[1], v.p[2]);
 				}
-
+            }
 			glEnd();
-			break;
 	}
 }
 
@@ -384,10 +382,10 @@ int main (int argc, char ** argv) {
 
 	// Mesh to VoxelGrid
 	VoxelGrid voxGrid(64);
-	voxGrid.fillGridBSH(mesh);
-	voxGrid.emptyInteriorVoxels();
-	cout << "Mesh -> VoxelGrid done : " << voxGrid.nbVoxelPleins() << " voxels pleins" << endl;
 
+    voxGrid.fillGridBSH(mesh);
+    voxGrid.emptyInteriorVoxels();
+    cout << "Mesh -> VoxelGrid done : " << voxGrid.nbVoxelPleins() << " voxels pleins" << endl;
 	// VoxelGrid to Octree 
 	Octree tree;
 	tree.fillOctreeWithVoxelGrid(voxGrid);
@@ -413,14 +411,41 @@ int main (int argc, char ** argv) {
 	tree.loadFromPointerEncoding(masks, pointers);
 	cout << "Pointer Encoding -> Octree done" << endl;
 
+    // Octree to DAG
     VoxelDAG dag;
     dag.buildDAG(tree);
+    cout << "Octree -> DAG done" << endl;
 
-	//Octree to VoxelGrid
+	// Octree to VoxelGrid
 	tree.convertOctreeToVoxelGrid(voxGrid);
 	cout << "Octree -> VoxelGrid done" << endl;
 
-	//VoxelGrid to Mesh
+    // DAG to VoxelGrid
+    voxGrid.setAllGrid(false);
+    dag.toVoxelGrid(voxGrid);
+    cout << "DAG -> VoxelGrid done" << endl;
+
+/*    // Debugging
+    VoxelGrid voxDebug(64);
+    voxDebug.setAllGrid(false);
+    voxDebug.setVoxel(31, 31, 31, true);
+    voxDebug.setVoxel(30, 31, 31, true);
+    voxDebug.setVoxel(32, 31, 31, true);
+    voxDebug.setVoxel(31, 30, 31, true);
+    voxDebug.setVoxel(31, 32, 31, true);
+    voxDebug.setVoxel(31, 31, 30, true);
+    voxDebug.setVoxel(31, 31, 32, true);
+    Octree treeDebug;
+    treeDebug.fillOctreeWithVoxelGrid(voxDebug);
+    treeDebug.cutEmptyNodes();
+    vector<uint8_t> masksDebug;
+    treeDebug.encodeBreadthFirst(masksDebug);
+    VoxelDAG dagDebug;
+    dagDebug.buildDAG(treeDebug);
+    dagDebug.toVoxelGrid(voxDebug);
+    voxGrid = voxDebug;*/
+
+	// VoxelGrid to Mesh
 	voxGrid.convertToMesh(voxelMesh);
 	cout << "VoxelGrid -> Mesh done : " << voxelMesh.Q.size() << " quads" << endl;
 

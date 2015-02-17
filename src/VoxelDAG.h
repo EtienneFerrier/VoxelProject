@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <stdint.h>
 #include "Octree.h"
+#include "VoxelGrid.h"
 
 static const uint32_t BitCount[] = {
     0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4,
@@ -25,23 +26,27 @@ static const uint32_t BitCount[] = {
     4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8
 };
 
-// DEBUG
+
+
+// GDB won't get all operators without this
 template class std::vector<std::vector<std::vector<int>>>;
 template class std::vector<std::vector<int>>;
 template class std::vector<int>;
 
+
 class VoxelDAG {
-    std::vector<uint32_t> _dag;
+    typedef std::vector<std::vector<std::vector<int>>> fullDAG;
+    fullDAG _dag;
 
 public:
-    void buildDAG(Octree& oct) {
+    fullDAG buildFullSVO(Octree& oct) {
         std::vector<uint8_t> masks;
         // masks are stored breadth-first
         oct.encodeBreadthFirst(masks);
 
         // store level-wise
         // also, don't just store a pointer to the first child, but to all of them
-        std::vector<std::vector<std::vector<int>>> octLevels;
+        fullDAG octLevels;
 
         int lvlStart = 0;
         int lvlEnd = 1;
@@ -69,20 +74,66 @@ public:
             lvlStart = lvlEnd;
             lvlEnd += nextLvlSize;
         }
+        return octLevels;
+    }
 
-        // this is just to prove it works
-        std::vector<uint8_t> masks_recon;
-        for (auto v: octLevels) {
-            for (auto vv : v) {
-                masks_recon.push_back(vv[0]);
+
+    void mergeSVO(fullDAG& dagTree) {
+        for (int lvl = dagTree.size()-1; lvl > 0; --lvl) {
+            // find all uniques
+            std::vector<std::vector<int>> uniques(dagTree[lvl]);
+            std::sort(uniques.begin(), uniques.end());
+            auto resizeIterator = std::unique(uniques.begin(), uniques.end());
+            uniques.resize( std::distance(uniques.begin(), resizeIterator) );
+
+            // merging
+            // find an injective mapping from the nodes in the original level to uniques
+            std::vector<int> mapping;
+            for (auto node : dagTree[lvl]) {
+                auto newIt = std::lower_bound(uniques.begin(), uniques.end(), node);
+                mapping.push_back(std::distance(uniques.begin(), newIt));
             }
+
+            // update the pointers in the level above to point to the same element in uniques
+            for (int prnt = dagTree[lvl-1].size() - 1; prnt >= 0; --prnt) {
+                for (int i = dagTree[lvl-1][prnt].size() - 1; i > 0; --i) {
+                    dagTree[lvl-1][prnt][i] = mapping[dagTree[lvl-1][prnt][i]];
+                }
+            }
+
+            // actually replace the level with its uniques
+            dagTree[lvl] = uniques;
         }
-        bool toast = masks_recon == masks;
+    }
 
 
-        int numnodes = 0;
-        for (auto v : octLevels) {
-            numnodes += v.size();
+    void buildDAG(Octree& oct) {
+        auto dagTree = buildFullSVO(oct);
+        mergeSVO(dagTree);
+        _dag = dagTree;
+    }
+
+    void toVoxelGrid(VoxelGrid& voxGrid, int lvl = 0, int node = 0, int x = 0, int y = 0, int z = 0) {
+        int halfSize = voxGrid.getSize() >> (lvl + 1);
+        int posX[] = {x, x + halfSize, x + halfSize, x, x, x + halfSize, x + halfSize, x};
+        int posY[] = {y, y, y + halfSize, y + halfSize, y, y, y + halfSize, y + halfSize};
+        int posZ[] = {z, z, z, z, z + halfSize, z + halfSize, z + halfSize, z + halfSize};
+        uint8_t children = _dag[lvl][node][0];
+        // at the lowest level
+        if (_dag.size() == 1 + lvl) {
+            for (int i = 0; i < 8; i++) {
+                if (children & (128 >> i)) {
+                    voxGrid.setVoxel(posX[i], posY[i], posZ[i], true);
+                }
+            }
+        } else {
+            int nodeInd = 1;
+            for (int i = 0; i < 8; i++) {
+                if (children & (128 >> i)) {
+                    toVoxelGrid(voxGrid, lvl+1, _dag[lvl][node][nodeInd], posX[i], posY[i], posZ[i]);
+                    nodeInd++;
+                }
+            }
         }
     }
 };
