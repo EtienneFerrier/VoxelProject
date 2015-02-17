@@ -90,6 +90,7 @@ void Octree::fillOctree(VoxelGrid& voxGrid, int x, int y, int z, int size)
 void Octree::fillOctreeWithVoxelGrid(VoxelGrid& voxGrid)
 {
 	fillOctree(voxGrid, 0, 0, 0, voxGrid.getSize());
+	cutEmptyNodes();
 }
 
 // Enleve et efface les sous arbres completement vides de l'Octree

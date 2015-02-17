@@ -11,7 +11,7 @@ class VoxelGrid
 {
 	int _size; // Taille du cote de la grille
 	bool* _content; // Tableau de stockage du contenu
-	uint8_t* color;
+	bool* _color;
 
 public:
 
@@ -43,5 +43,6 @@ public:
 	void displayCut(int zAxis);
 	inline int vertexIndex(int i, int j, int k);
 	void convertToMesh(Mesh& m);
+	void colorOctree();
 };
 

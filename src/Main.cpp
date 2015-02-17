@@ -50,6 +50,7 @@ static int displayMode = ORIGINAL_MESH;
 Mesh mesh;
 Mesh sphereMesh;
 Mesh voxelMesh;
+Octree tree;
 
 using namespace std;
 
@@ -194,7 +195,10 @@ void draw () {
 		case VOXEL_MESH:
 			glBegin(GL_QUADS);
 			for (unsigned int i = 0; i < voxelMesh.Q.size(); i++) {
-                glColor3f(1.0f, 0.5f, 0.0f);
+				if (i < voxelMesh.Q.size() / 2)
+					glColor3f(1.0f, 0.5f, 0.0f);
+				else
+					glColor3f(1.0f, 1.0f, 1.0f);
 
 				for (unsigned int j = 0; j < 4; j++) {
     				const Vertex & v = voxelMesh.V[voxelMesh.Q[i].v[j]];
@@ -390,9 +394,7 @@ int main (int argc, char ** argv) {
     voxGrid.emptyInteriorVoxels();
     cout << "Mesh -> VoxelGrid done : " << voxGrid.nbVoxelPleins() << " voxels pleins" << endl;
 	// VoxelGrid to Octree 
-	Octree tree;
 	tree.fillOctreeWithVoxelGrid(voxGrid);
-	tree.cutEmptyNodes();
 	cout << "VoxelGrid -> Octree done" << endl;
 
 	// Octree to Breadth First encoding

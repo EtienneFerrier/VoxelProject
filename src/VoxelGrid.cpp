@@ -14,6 +14,7 @@ VoxelGrid::VoxelGrid(int size)
 VoxelGrid::~VoxelGrid()
 {
 	delete[] _content;
+	delete[] _color;
 }
 
 // Convertit un mesh en voxelGrid (en prenant l'interieur).
@@ -183,4 +184,11 @@ void VoxelGrid::convertToMesh(Mesh& m)
 			}
 
 	m.recomputeNormals();
+}
+
+void VoxelGrid::colorOctree()
+{
+	if (_color == NULL)
+		_color = new bool[_size*_size*_size];
+
 }
