@@ -43,6 +43,11 @@ public:
 	void displayCut(int zAxis);
 	inline int vertexIndex(int i, int j, int k);
 	void convertToMesh(Mesh& m);
-	void colorOctree();
+	void colorSubOctree();
+	inline bool getColor(int i, int j, int k)
+	{
+		return ((_color != NULL) && _color[(i*_size + j)*_size + k]);
+	}
+	void clearColor();
 };
 

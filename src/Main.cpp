@@ -51,6 +51,7 @@ Mesh mesh;
 Mesh sphereMesh;
 Mesh voxelMesh;
 Octree tree;
+VoxelGrid voxGrid(64); // Modifier la resolution de la grille ici
 
 using namespace std;
 
@@ -195,10 +196,10 @@ void draw () {
 		case VOXEL_MESH:
 			glBegin(GL_QUADS);
 			for (unsigned int i = 0; i < voxelMesh.Q.size(); i++) {
-				if (i < voxelMesh.Q.size() / 2)
-					glColor3f(1.0f, 0.5f, 0.0f);
+				if (voxelMesh.col[i])
+					glColor3f(1.0f, 0.4f, 0.0f);
 				else
-					glColor3f(1.0f, 1.0f, 1.0f);
+					glColor3f(1.f, 1.f, 1.f);
 
 				for (unsigned int j = 0; j < 4; j++) {
     				const Vertex & v = voxelMesh.V[voxelMesh.Q[i].v[j]];
@@ -302,6 +303,14 @@ void key (unsigned char keyPressed, int x, int y) {
 	case '3':
 		displayMode = VOXEL_MESH;
 		break;
+	case 'o':
+		voxGrid.colorSubOctree();
+		voxGrid.convertToMesh(voxelMesh); // Non efficace mais instantané
+		break;
+	case 'c':
+		voxGrid.clearColor();
+		voxGrid.convertToMesh(voxelMesh);
+		break;
     default:
         printUsage ();
 		//cout << keyPressed << endl;
@@ -388,8 +397,6 @@ int main (int argc, char ** argv) {
 	//cout << "	Max taille feuille : " << mesh.BSHtree->maxTailleFeuille() << endl;
 
 	// Mesh to VoxelGrid
-	VoxelGrid voxGrid(32);
-
     voxGrid.fillSparseGridBSH(mesh);
     voxGrid.emptyInteriorVoxels();
     cout << "Mesh -> VoxelGrid done : " << voxGrid.nbVoxelPleins() << " voxels pleins" << endl;

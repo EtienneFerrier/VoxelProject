@@ -138,6 +138,7 @@ void VoxelGrid::convertToMesh(Mesh& m)
 	m.V = vector<Vertex>((_size + 1)*(_size + 1)*(_size + 1));
 	m.T = vector<Triangle>();
 	m.Q = vector<Quad>();
+	m.col = vector<bool>();
 
 	float step = 2.f / ((float)_size);
 
@@ -167,28 +168,66 @@ void VoxelGrid::convertToMesh(Mesh& m)
 					m.Q.push_back(Quad(i2, i3, i7, i6));	//x+
 					m.Q.push_back(Quad(i3, i4, i8, i7));	//y+
 					*/	
+					bool col = getColor(i, j, k);
 
 					if (i == 0 || !getVoxel(i - 1, j, k))
+					{
 						m.Q.push_back(Quad(i1, i5, i8, i4));
+						m.col.push_back(col);
+					}
 					if (i == _size - 1 || !getVoxel(i+1, j, k))
+					{
 						m.Q.push_back(Quad(i2, i3, i7, i6));
-					if (j == 0 || !getVoxel(i, j-1, k))
+						m.col.push_back(col);
+					}
+					if (j == 0 || !getVoxel(i, j - 1, k))
+					{
 						m.Q.push_back(Quad(i1, i2, i6, i5));
-					if (j == _size - 1 || !getVoxel(i, j+1, k))
+						m.col.push_back(col);
+					}
+					if (j == _size - 1 || !getVoxel(i, j + 1, k))
+					{
 						m.Q.push_back(Quad(i3, i4, i8, i7));
-					if (k == 0 || !getVoxel(i, j, k-1))
+						m.col.push_back(col);
+					}
+					if (k == 0 || !getVoxel(i, j, k - 1))
+					{
 						m.Q.push_back(Quad(i1, i4, i3, i2));
-					if (k == _size - 1 || !getVoxel(i, j, k+1))
+						m.col.push_back(col);
+					}
+					if (k == _size - 1 || !getVoxel(i, j, k + 1))
+					{
 						m.Q.push_back(Quad(i5, i6, i7, i8));
+						m.col.push_back(col);
+					}
 				}
 			}
 
 	m.recomputeNormals();
 }
 
-void VoxelGrid::colorOctree()
+// Met tous les champs couleur a false
+void VoxelGrid::clearColor()
+{
+	for (int i = 0; i < _size*_size*_size; i++)
+	{
+		_color[i] = false;
+	}
+}
+
+// Colore un des 8 sub octree de la grille
+void VoxelGrid::colorSubOctree()
 {
 	if (_color == NULL)
 		_color = new bool[_size*_size*_size];
 
+	clearColor();
+
+	for (int i = 0; i < _size/2; i++)
+		for (int j = _size / 2; j < _size; j++)
+			for (int k = _size / 2; k <_size; k++)
+			{
+				_color[(i*_size + j)*_size + k] = true;
+			}
 }
+
