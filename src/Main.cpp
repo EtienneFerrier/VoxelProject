@@ -107,6 +107,9 @@ void init (const char * modelFilename) {
     }
 #endif
     initLight ();
+
+	glColorMaterial(GL_FRONT, GL_DIFFUSE);
+	glEnable(GL_COLOR_MATERIAL);
     
     camera.resize (SCREENWIDTH, SCREENHEIGHT);
     mesh.loadOFF (modelFilename);
@@ -381,7 +384,7 @@ int main (int argc, char ** argv) {
 	//cout << "	Max taille feuille : " << mesh.BSHtree->maxTailleFeuille() << endl;
 
 	// Mesh to VoxelGrid
-	VoxelGrid voxGrid(512);
+	VoxelGrid voxGrid(32);
 
     voxGrid.fillSparseGridBSH(mesh);
     voxGrid.emptyInteriorVoxels();
