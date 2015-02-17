@@ -43,17 +43,17 @@ L’intérêt des DAG est qu’ils permettent d’encoder l’information d'une 
 Grace a ce papier, nous avons implémenté :\\
 
 \begin{itemize}
-  \item Une structure inefficace \textit{pointer only} de SVO dont la manipulation est aisée et dont le parcours (lancer de rayons) est efficace.
-  \item Une structure efficace \textit{mask-pointer} de SVO dont le stockage est reduit et dont le parcours est efficace.
-  \item Une structure très compacte \textit{breadth first} de SVO dont le stockage est très réduit mais dont le parcours est inefficace.
-  \item Une structure efficace de DAG \textit{mask-pointer} dont le stockage est réduit et dont le parcours est efficace.
+  \item Une structure inefficace \textit{pointer only} de SVO dont l'implementation est intuitive et dont le parcours (lancer de rayons) est efficace.
+  \item Une representation efficace \textit{mask-index} de SVO dont le stockage est reduit et dont le parcours est efficace.
+  \item Une representation très compacte \textit{breadth first} de SVO dont le stockage est très réduit mais dont le parcours est inefficace.
+  \item Une structure efficace \textit{mask-index} de DAG  dont le stockage est réduit et dont le parcours est efficace.
   \item Un algorithme qui permet de réduire un SVO en un DAG.\\
 \end{itemize}
 
-Nous avons pu comparer les résultats de ces différentes structures en termes de taille mémoire afin d'observer l'utilité des DAG.
+Nous avons pu comparer les résultats de ces différentes structures en termes de taille mémoire afin d'observer l'utilité des DAG. Nous avons constaté qu'il faut souvent faire un choix entre stockage optimal et facilité de parcours.
 
 
-Afin de comprendre toutes les étapes du pipeline du mesh au DAG, nous avons décidé de réaliser notre implémentation à partir du projet OpenGL de base du TD. Nous avons donc aussi implémenté notre propre conversion d’un maillage 3D vers un SVO grâce à une méthode de lancer de rayons.
+Afin de comprendre toutes les étapes du pipeline (voir Figure 1) du mesh au DAG, nous avons décidé de réaliser notre implémentation à partir du projet OpenGL de base du TD. Nous avons donc aussi implémenté notre propre conversion d’un maillage 3D vers un SVO grâce à une méthode de lancer de rayons.
 
 \begin{figure}
 \centering
@@ -74,7 +74,7 @@ class Octree {
 
 Chaque nœud qui n’est pas une feuille, i.e qui ne représente pas un voxel, contient 8 pointeurs vers ses nœuds fils. La méthode \texttt{Octree::cutEmptyNodes();} permet d’en obtenir un SVO. 
 
-\subsection{SVO mask-pointer}
+\subsection{SVO mask-index}
 
 La méthode suivante encode, pour chaque nœud d'un octree, un masque de 8 bits décrivant l’occupation de ses fils et un pointeur de 32 bits vers son premier fils non vide. 
 
