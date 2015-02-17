@@ -1,6 +1,5 @@
 #pragma once
-#include <cstdint>
-#include <queue>
+#include <stdint.h>
 #include <vector>
 
 #include "VoxelGrid.h"

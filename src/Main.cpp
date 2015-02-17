@@ -381,7 +381,7 @@ int main (int argc, char ** argv) {
 	//cout << "	Max taille feuille : " << mesh.BSHtree->maxTailleFeuille() << endl;
 
 	// Mesh to VoxelGrid
-	VoxelGrid voxGrid(64);
+	VoxelGrid voxGrid(128);
 
     voxGrid.fillGridBSH(mesh);
     voxGrid.emptyInteriorVoxels();
@@ -411,14 +411,14 @@ int main (int argc, char ** argv) {
 	tree.loadFromPointerEncoding(masks, pointers);
 	cout << "Pointer Encoding -> Octree done" << endl;
 
+	// Octree to VoxelGrid
+	tree.convertOctreeToVoxelGrid(voxGrid);
+	cout << "Octree -> VoxelGrid done" << endl;
+
     // Octree to DAG
     VoxelDAG dag;
     dag.buildDAG(tree);
     cout << "Octree -> DAG done" << endl;
-
-	// Octree to VoxelGrid
-	tree.convertOctreeToVoxelGrid(voxGrid);
-	cout << "Octree -> VoxelGrid done" << endl;
 
     // DAG to VoxelGrid
     voxGrid.setAllGrid(false);

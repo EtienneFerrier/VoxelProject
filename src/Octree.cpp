@@ -1,4 +1,6 @@
 #include "Octree.h"
+#include <algorithm>
+#include <queue>
 
 using namespace std;
 
