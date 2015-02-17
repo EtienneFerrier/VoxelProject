@@ -57,7 +57,7 @@ Afin de comprendre toutes les étapes du pipeline du mesh au DAG, nous avons dé
 
 \begin{figure}
 \centering
-\includegraphics[width=1\textwidth]{../graph.png}
+\includegraphics[width=1\textwidth]{ClassGraph.png}
 \caption{\label{fig:triceratops}\textit{Pipeline of our implementation}}
 \end{figure}
 
@@ -67,7 +67,7 @@ Nous utilisons la structure récursive suivante d’octree pour sa facilité de 
 
 \begin{lstlisting}
 class Octree {
-	Octree* _childs; // = null ou Octree[8]
+	Octree* _childs; // = NULL ou Octree[8]
 	bool _isEmpty;
 };
 \end{lstlisting}

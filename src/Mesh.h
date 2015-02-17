@@ -25,6 +25,7 @@ public:
 	std::vector<Vertex> V;
 	std::vector<Triangle> T;
 	std::vector<Quad> Q;
+	std::vector<bool> col;
 
 	/// Loads the mesh from a <file>.off
 	void loadOFF(const std::string & filename);

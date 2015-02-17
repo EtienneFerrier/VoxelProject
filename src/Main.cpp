@@ -50,6 +50,9 @@ static int displayMode = ORIGINAL_MESH;
 Mesh mesh;
 Mesh sphereMesh;
 Mesh voxelMesh;
+Octree tree;
+VoxelGrid voxGrid(128); // Modifier la resolution de la grille ici
+VoxelDAG dag;
 
 using namespace std;
 
@@ -107,6 +110,9 @@ void init (const char * modelFilename) {
     }
 #endif
     initLight ();
+
+	glColorMaterial(GL_FRONT, GL_DIFFUSE);
+	glEnable(GL_COLOR_MATERIAL);
     
     camera.resize (SCREENWIDTH, SCREENHEIGHT);
     mesh.loadOFF (modelFilename);
@@ -191,7 +197,10 @@ void draw () {
 		case VOXEL_MESH:
 			glBegin(GL_QUADS);
 			for (unsigned int i = 0; i < voxelMesh.Q.size(); i++) {
-                glColor3f(1.0f, 0.5f, 0.0f);
+				if (voxelMesh.col[i])
+					glColor3f(1.0f, 0.4f, 0.0f);
+				else
+					glColor3f(1.f, 1.f, 1.f);
 
 				for (unsigned int j = 0; j < 4; j++) {
     				const Vertex & v = voxelMesh.V[voxelMesh.Q[i].v[j]];
@@ -295,6 +304,21 @@ void key (unsigned char keyPressed, int x, int y) {
 	case '3':
 		displayMode = VOXEL_MESH;
 		break;
+	case 'o':
+		voxGrid.colorSubOctree();
+		voxGrid.convertToMesh(voxelMesh); // Non efficace mais instantané
+		break;
+    case 'd':
+        if (!dag.isEmpty()) {
+            voxGrid.clearColor();
+            dag.toVoxelGrid(voxGrid, 0, 0, 0, 0, 0, true);
+            voxGrid.convertToMesh(voxelMesh); // Non efficace mais instantané
+        }
+        break;
+	case 'c':
+		voxGrid.clearColor();
+		voxGrid.convertToMesh(voxelMesh);
+		break;
     default:
         printUsage ();
 		//cout << keyPressed << endl;
@@ -381,15 +405,11 @@ int main (int argc, char ** argv) {
 	//cout << "	Max taille feuille : " << mesh.BSHtree->maxTailleFeuille() << endl;
 
 	// Mesh to VoxelGrid
-	VoxelGrid voxGrid(128);
-
-    voxGrid.fillGridBSH(mesh);
+    voxGrid.fillSparseGridBSH(mesh);
     voxGrid.emptyInteriorVoxels();
     cout << "Mesh -> VoxelGrid done : " << voxGrid.nbVoxelPleins() << " voxels pleins" << endl;
 	// VoxelGrid to Octree 
-	Octree tree;
 	tree.fillOctreeWithVoxelGrid(voxGrid);
-	tree.cutEmptyNodes();
 	cout << "VoxelGrid -> Octree done" << endl;
 
 	// Octree to Breadth First encoding
@@ -416,7 +436,6 @@ int main (int argc, char ** argv) {
 	cout << "Octree -> VoxelGrid done" << endl;
 
     // Octree to DAG
-    VoxelDAG dag;
     dag.buildDAG(tree);
     cout << "Octree -> DAG done" << endl;
 
@@ -424,26 +443,6 @@ int main (int argc, char ** argv) {
     voxGrid.setAllGrid(false);
     dag.toVoxelGrid(voxGrid);
     cout << "DAG -> VoxelGrid done" << endl;
-
-/*    // Debugging
-    VoxelGrid voxDebug(64);
-    voxDebug.setAllGrid(false);
-    voxDebug.setVoxel(31, 31, 31, true);
-    voxDebug.setVoxel(30, 31, 31, true);
-    voxDebug.setVoxel(32, 31, 31, true);
-    voxDebug.setVoxel(31, 30, 31, true);
-    voxDebug.setVoxel(31, 32, 31, true);
-    voxDebug.setVoxel(31, 31, 30, true);
-    voxDebug.setVoxel(31, 31, 32, true);
-    Octree treeDebug;
-    treeDebug.fillOctreeWithVoxelGrid(voxDebug);
-    treeDebug.cutEmptyNodes();
-    vector<uint8_t> masksDebug;
-    treeDebug.encodeBreadthFirst(masksDebug);
-    VoxelDAG dagDebug;
-    dagDebug.buildDAG(treeDebug);
-    dagDebug.toVoxelGrid(voxDebug);
-    voxGrid = voxDebug;*/
 
 	// VoxelGrid to Mesh
 	voxGrid.convertToMesh(voxelMesh);

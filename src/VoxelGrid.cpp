@@ -1,4 +1,5 @@
 #include "VoxelGrid.h"
+#include "VoxelDAG.h"
 
 using namespace std;
 
@@ -7,6 +8,7 @@ VoxelGrid::VoxelGrid(int size)
 {
 	_size = size;
 	_content = new bool[size*size*size];
+	_color = NULL;
 	setAllGrid(false);
 }
 
@@ -14,6 +16,7 @@ VoxelGrid::VoxelGrid(int size)
 VoxelGrid::~VoxelGrid()
 {
 	delete[] _content;
+	delete[] _color;
 }
 
 // Convertit un mesh en voxelGrid (en prenant l'interieur).
@@ -137,6 +140,7 @@ void VoxelGrid::convertToMesh(Mesh& m)
 	m.V = vector<Vertex>((_size + 1)*(_size + 1)*(_size + 1));
 	m.T = vector<Triangle>();
 	m.Q = vector<Quad>();
+	m.col = vector<bool>();
 
 	float step = 2.f / ((float)_size);
 
@@ -166,21 +170,75 @@ void VoxelGrid::convertToMesh(Mesh& m)
 					m.Q.push_back(Quad(i2, i3, i7, i6));	//x+
 					m.Q.push_back(Quad(i3, i4, i8, i7));	//y+
 					*/	
+					bool col = getColor(i, j, k);
 
 					if (i == 0 || !getVoxel(i - 1, j, k))
+					{
 						m.Q.push_back(Quad(i1, i5, i8, i4));
+						m.col.push_back(col);
+					}
 					if (i == _size - 1 || !getVoxel(i+1, j, k))
+					{
 						m.Q.push_back(Quad(i2, i3, i7, i6));
-					if (j == 0 || !getVoxel(i, j-1, k))
+						m.col.push_back(col);
+					}
+					if (j == 0 || !getVoxel(i, j - 1, k))
+					{
 						m.Q.push_back(Quad(i1, i2, i6, i5));
-					if (j == _size - 1 || !getVoxel(i, j+1, k))
+						m.col.push_back(col);
+					}
+					if (j == _size - 1 || !getVoxel(i, j + 1, k))
+					{
 						m.Q.push_back(Quad(i3, i4, i8, i7));
-					if (k == 0 || !getVoxel(i, j, k-1))
+						m.col.push_back(col);
+					}
+					if (k == 0 || !getVoxel(i, j, k - 1))
+					{
 						m.Q.push_back(Quad(i1, i4, i3, i2));
-					if (k == _size - 1 || !getVoxel(i, j, k+1))
+						m.col.push_back(col);
+					}
+					if (k == _size - 1 || !getVoxel(i, j, k + 1))
+					{
 						m.Q.push_back(Quad(i5, i6, i7, i8));
+						m.col.push_back(col);
+					}
 				}
 			}
 
 	m.recomputeNormals();
 }
+
+// Met tous les champs couleur a false
+void VoxelGrid::clearColor()
+{
+	if (_color != NULL) {
+		for (int i = 0; i < _size*_size*_size; i++) {
+			_color[i] = false;
+		}
+	}
+}
+
+// Colore un des 8 sub octree de la grille
+void VoxelGrid::colorSubOctree()
+{
+	clearColor();
+	if (_color == NULL)
+		_color = new bool[_size*_size*_size];
+
+	int halfSize = _size/2;
+	static int offset = 1;
+	// yay code duplication
+	int posX[] = {0, halfSize, halfSize, 0, 0, halfSize, halfSize, 0};
+	int posY[] = {0, 0, halfSize, halfSize, 0, 0, halfSize, halfSize};
+	int posZ[] = {0, 0, 0, 0, halfSize, halfSize, halfSize, halfSize};
+	for (int i = posX[offset]; i < posX[offset] + halfSize; i++) {
+		for (int j = posY[offset]; j < posY[offset] + halfSize; j++) {
+			for (int k = posZ[offset]; k < posZ[offset] + halfSize; k++) {
+				_color[(i*_size + j)*_size + k] = true;
+			}
+		}
+	}
+	offset = (offset + 1) % 8;
+}
+
+

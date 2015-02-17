@@ -1,7 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include <vector>
-
+#include "VoxelDAG.h"
 #include "VoxelGrid.h"
 
 
