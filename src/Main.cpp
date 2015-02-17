@@ -52,6 +52,7 @@ Mesh sphereMesh;
 Mesh voxelMesh;
 Octree tree;
 VoxelGrid voxGrid(128); // Modifier la resolution de la grille ici
+VoxelDAG dag;
 
 using namespace std;
 
@@ -307,6 +308,13 @@ void key (unsigned char keyPressed, int x, int y) {
 		voxGrid.colorSubOctree();
 		voxGrid.convertToMesh(voxelMesh); // Non efficace mais instantané
 		break;
+    case 'd':
+        if (!dag.isEmpty()) {
+            voxGrid.clearColor();
+            dag.toVoxelGrid(voxGrid, 0, 0, 0, 0, 0, true);
+            voxGrid.convertToMesh(voxelMesh); // Non efficace mais instantané
+        }
+        break;
 	case 'c':
 		voxGrid.clearColor();
 		voxGrid.convertToMesh(voxelMesh);
@@ -432,7 +440,6 @@ int main (int argc, char ** argv) {
 	cout << "Pointer Encoding -> Octree done" << endl;
 
     // Octree to DAG
-    VoxelDAG dag;
     dag.buildDAG(tree);
     cout << "Octree -> DAG done : " << dag.getSize() << " bytes." << endl;
 
@@ -440,30 +447,14 @@ int main (int argc, char ** argv) {
 	tree.convertOctreeToVoxelGrid(voxGrid);
 	cout << "Octree -> VoxelGrid done" << endl;
 
+    // Octree to DAG
+    dag.buildDAG(tree);
+    cout << "Octree -> DAG done" << endl;
+
     // DAG to VoxelGrid
     voxGrid.setAllGrid(false);
     dag.toVoxelGrid(voxGrid);
     cout << "DAG -> VoxelGrid done" << endl;
-
-/*    // Debugging
-    VoxelGrid voxDebug(64);
-    voxDebug.setAllGrid(false);
-    voxDebug.setVoxel(31, 31, 31, true);
-    voxDebug.setVoxel(30, 31, 31, true);
-    voxDebug.setVoxel(32, 31, 31, true);
-    voxDebug.setVoxel(31, 30, 31, true);
-    voxDebug.setVoxel(31, 32, 31, true);
-    voxDebug.setVoxel(31, 31, 30, true);
-    voxDebug.setVoxel(31, 31, 32, true);
-    Octree treeDebug;
-    treeDebug.fillOctreeWithVoxelGrid(voxDebug);
-    treeDebug.cutEmptyNodes();
-    vector<uint8_t> masksDebug;
-    treeDebug.encodeBreadthFirst(masksDebug);
-    VoxelDAG dagDebug;
-    dagDebug.buildDAG(treeDebug);
-    dagDebug.toVoxelGrid(voxDebug);
-    voxGrid = voxDebug;*/
 
 	// VoxelGrid to Mesh
 	voxGrid.convertToMesh(voxelMesh);

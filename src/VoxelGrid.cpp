@@ -1,4 +1,5 @@
 #include "VoxelGrid.h"
+#include "VoxelDAG.h"
 
 using namespace std;
 
@@ -7,6 +8,7 @@ VoxelGrid::VoxelGrid(int size)
 {
 	_size = size;
 	_content = new bool[size*size*size];
+	_color = NULL;
 	setAllGrid(false);
 }
 
@@ -209,25 +211,34 @@ void VoxelGrid::convertToMesh(Mesh& m)
 // Met tous les champs couleur a false
 void VoxelGrid::clearColor()
 {
-	for (int i = 0; i < _size*_size*_size; i++)
-	{
-		_color[i] = false;
+	if (_color != NULL) {
+		for (int i = 0; i < _size*_size*_size; i++) {
+			_color[i] = false;
+		}
 	}
 }
 
 // Colore un des 8 sub octree de la grille
 void VoxelGrid::colorSubOctree()
 {
+	clearColor();
 	if (_color == NULL)
 		_color = new bool[_size*_size*_size];
 
-	clearColor();
-
-	for (int i = 0; i < _size/2; i++)
-		for (int j = _size / 2; j < _size; j++)
-			for (int k = _size / 2; k <_size; k++)
-			{
+	int halfSize = _size/2;
+	static int offset = 1;
+	// yay code duplication
+	int posX[] = {0, halfSize, halfSize, 0, 0, halfSize, halfSize, 0};
+	int posY[] = {0, 0, halfSize, halfSize, 0, 0, halfSize, halfSize};
+	int posZ[] = {0, 0, 0, 0, halfSize, halfSize, halfSize, halfSize};
+	for (int i = posX[offset]; i < posX[offset] + halfSize; i++) {
+		for (int j = posY[offset]; j < posY[offset] + halfSize; j++) {
+			for (int k = posZ[offset]; k < posZ[offset] + halfSize; k++) {
 				_color[(i*_size + j)*_size + k] = true;
 			}
+		}
+	}
+	offset = (offset + 1) % 8;
 }
+
 

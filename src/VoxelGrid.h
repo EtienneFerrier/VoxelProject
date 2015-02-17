@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <vector>
 
-
+class VoxelDAG;
 // On suppose que la grille est centrée en (0, 0, 0)
 // On suppose que la grille est de taille 2 de côté
 class VoxelGrid
@@ -44,9 +44,16 @@ public:
 	inline int vertexIndex(int i, int j, int k);
 	void convertToMesh(Mesh& m);
 	void colorSubOctree();
-	inline bool getColor(int i, int j, int k)
-	{
+	//void colorSubDAG(VoxelDAG& dag);
+	inline bool getColor(int i, int j, int k) {
 		return ((_color != NULL) && _color[(i*_size + j)*_size + k]);
+	}
+	inline void setColor(int x, int y, int z) {
+		if (x < 0 || x >= _size || y < 0 || y >= _size || z < 0 || z >= _size) {
+			std::cout << "setColor hors champ" << std::endl;
+		} else if (_color != NULL) {
+			_color[(x*_size + y)*_size + z] = true;
+		}
 	}
 	void clearColor();
 };

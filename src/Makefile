@@ -1,5 +1,5 @@
 CIBLE = Main
-SRCS =  Camera.cpp Main.cpp Mesh.cpp Node.cpp Octree.cpp Ray.cpp VoxelGrid.cpp #Shader.cpp
+SRCS =  Camera.cpp Main.cpp Mesh.cpp Node.cpp Octree.cpp Ray.cpp VoxelGrid.cpp VoxelDAG.cpp #Shader.cpp
 LIBS =  -lglut -lGLU -lGL -lm #-lGLEW
 
 CC = clang
@@ -24,6 +24,7 @@ Node.o: Node.h Mesh.h Triangle.h Vertex.h Ray.h Quad.h Vec3.h
 Octree.o: Octree.h VoxelGrid.h Mesh.h Triangle.h Vertex.h Ray.h Quad.h Node.h Vec3.h
 Ray.o: Ray.h Vec3.h
 VoxelGrid.o: VoxelGrid.h Mesh.h Triangle.h Vertex.h Ray.h Quad.h Node.h Vec3.h
+VoxelDAG.o: VoxelDAG.h Octree.h VoxelGrid.h
 #Shader.o: Shader.cpp Shader.h
 
 
