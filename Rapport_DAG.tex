@@ -30,30 +30,19 @@ Ce rapport decrit notre implementation partielle du papier \textit{High Resoluti
 \end{abstract}
 
 \section{Objectif de la publication originale}
+Ce papier décrit comment construire, stocker et manipuler des Sparse Voxel Directed Acyclic Graphs (DAG) afin de décrire une scène 3D de voxels. Les DAG sont une évolution des Sparse Voxel Octrees (SVO), qui permettent eux aussi de décrire une scène de voxels plus efficacement qu’une simple grille 3D.
 
-Ce papier décrit comment construire, stocker et manipuler des Sparse Voxel Directed Acyclic Graphs (DAG) afin de décrire une scène de voxels. Les DAG sont une évolution des Sparse Voxel Octrees (SVO), qui permettent eux aussi de décrire une scène de voxels plus efficacement qu’une simple grille 3D.
-
-Dans ce papier, les octrees et DAG sont utilisés en tant que que descripteurs d’une scène 3D et non seulement en tant que structures d’accélération.
+Dans ce papier, les octrees et DAG sont utilisés en tant que descripteurs d’une scène 3D et non seulement en tant que structures d’accélération.
 
 L’intérêt des DAG est qu’ils permettent d’encoder l’information d'une scène de voxels de façon plus compacte qu’un SVO tout en ayant une structure efficace vis-à-vis des algorithmes de lancer de rayon.
 
 
 \section{Implementation}
+L'implementation de l'algorithme de conversion a été réalisé en C++ en utilisant les libraries Glut/OpenGL. Afin de comprendre toutes les étapes du pipeline (voir Figure 1) du mesh au DAG, nous avons décidé de réaliser notre implémentation à partir du projet OpenGL de base du TD. Nous avons ajouté trois classes, décrit dessous, et des divers additifs. \\
 
-Grace a ce papier, nous avons implémenté :\\
+Les papiers sur les DAG ainsi qui \textit{Efficient Sparse Voxel Octrees} [Laine, Karras, 2010] nous ont servis comme référence. \\ 
 
-\begin{itemize}
-  \item Une structure inefficace \textit{pointer only} de SVO dont l'implementation est intuitive et dont le parcours (lancer de rayons) est efficace.
-  \item Une representation efficace \textit{mask-index} de SVO dont le stockage est reduit et dont le parcours est efficace.
-  \item Une representation très compacte \textit{breadth first} de SVO dont le stockage est très réduit mais dont le parcours est inefficace.
-  \item Une structure efficace \textit{mask-index} de DAG  dont le stockage est réduit et dont le parcours est efficace.
-  \item Un algorithme qui permet de réduire un SVO en un DAG.\\
-\end{itemize}
-
-Nous avons pu comparer les résultats de ces différentes structures en termes de taille mémoire afin d'observer l'utilité des DAG. Nous avons constaté qu'il faut souvent faire un choix entre stockage optimal et facilité de parcours.
-
-
-Afin de comprendre toutes les étapes du pipeline (voir Figure 1) du mesh au DAG, nous avons décidé de réaliser notre implémentation à partir du projet OpenGL de base du TD. Nous avons donc aussi implémenté notre propre conversion d’un maillage 3D vers un SVO grâce à une méthode de lancer de rayons.
+Afin de comprendre toutes les étapes du pipeline (voir Figure 1) du mesh au DAG, nous avons décidé de réaliser notre implémentation à partir du projet OpenGL de base de la partie pratique du cours. Nous avons donc aussi implémenté notre propre conversion d’un maillage 3D vers un SVO grâce à une méthode de lancer de rayons.
 
 \begin{figure}
 \centering
@@ -61,40 +50,110 @@ Afin de comprendre toutes les étapes du pipeline (voir Figure 1) du mesh au DAG
 \caption{\label{fig:triceratops}\textit{Pipeline of our implementation}}
 \end{figure}
 
-\subsection{Octree complet}
 
-Nous utilisons la structure récursive suivante d’octree pour sa facilité de manipulation.
+\subsection{Octree}
+La classe Octree permet de construire un SVO à partir d'un VoxelGrid. Son implementation est intuitive et dont le parcours (lancer de rayons) est efficace. Sa structure est par defaut une structure récursive aux pointeurs plus ou moins intuitive.
 
+% \begin{lstlisting}
+% class Octree {
+% 	Octree* _children; // = NULL ou Octree[8]
+% 	bool _isEmpty;
+% };
+% \end{lstlisting}
+
+Chaque nœud qui n’est pas une feuille, i.e qui ne représente pas un voxel, contient 8 pointeurs vers ses nœuds fils. La location d'un voxel est définie par le chemin de la racine au nœud voxel. Cette classe permet deux autres réprésentations, qui repose sur les childmasks. \\ 
+
+\subsubsection{Breadth first} % (fold)
+\label{ssub:breadth_first}
+Une représentation très compacte \textit{breadth first} de SVO dont le stockage est très réduit mais dont le parcours est inefficace. Pour chaque nœud intérieur, on peut calculer un masque de 8 bits décrivant l’occupation de ses fils. Toutes nœuds intérieurs, en forme de childmask, sont enchainés dans l’ordre « largeur d’abord » dans un vecteur. La taille du vecteur en octets est donc égale au nombre des nœuds intérieurs. \\
+
+La conversion se fait par la méthode suivante:
 \begin{lstlisting}
-class Octree {
-	Octree* _childs; // = NULL ou Octree[8]
-	bool _isEmpty;
-};
+void Octree::encodeBreadthFirst(std::vector<uint8_t>& storage);
 \end{lstlisting}
+% subsubsection breadth_first (end)
 
-Chaque nœud qui n’est pas une feuille, i.e qui ne représente pas un voxel, contient 8 pointeurs vers ses nœuds fils. La méthode \texttt{Octree::cutEmptyNodes();} permet d’en obtenir un SVO. 
 
-\subsection{SVO mask-index}
+\subsubsection{Childmasks à indices} % (fold)
 
-La méthode suivante encode, pour chaque nœud d'un octree, un masque de 8 bits décrivant l’occupation de ses fils et un pointeur de 32 bits vers son premier fils non vide. 
+Une représentation efficace \textit{mask-index} de SVO similaire à celle de Laine et Karras. Les fils non vides d'un nœud sont stockés de manière consécutive et chaque childmask (jusqu'au niveau avant-dernier) est accompagné d'un entier correspondant à l'indice du premier fils. Le stockage est reduit, en comparaison et dont le parcours est efficace. La taille totale est celle de la représentation mentionné ci-dessus plus celle des indices. Souvent on juxtapose les deux nombres dans un entier de 32 bit, dont 24 pour l'indice et 8 pour le childmask. \\
 
+La conversion se fait par la méthode suivante:
 \begin{lstlisting}
 void Octree::encodeWithPointers(std::vector<uint8_t>& masks, 
-	std::vector<int>& pointers, 
-	std::vector<int>& levels);
+  std::vector<int>& pointers, 
+  std::vector<int>& levels);
 \end{lstlisting}
 
 Pour chaque nœud d'index i, son masque est stocké dans masks[i] et l’index de son premier fils non vide est stocké dans pointers[i].
 
-\subsection{SVO breadth-first}
 
-La méthode suivante encode, pour chaque noeud, seulement un masque de 8 bits décrivant l’occupation de ses fils.
+
+\subsection{VoxelDAG} % (fold)
+La classe VoxelDAG calcule une structure efficace de DAG dont le stockage est réduit et dont le parcours est efficace. D'abord, on partitionne la représentation \textit{breadth first} dans les niveaux du octree, en utilisant la fonction
+\begin{lstlisting}
+std::vector<std::vector<std::vector<int>>> 
+    VoxelDAG::buildFullSVO(Octree& oct);
+\end{lstlisting}
+
+Les vecteurs intérieurs, qui décrivent un nœud, sont de type \textit{std::vector<int>}: Le premier élément est toujours le childmask, et les éléments suivants sont des indices vers les nœuds au niveau prochain. Tous les nœuds d'un niveau sont encore stockés dans un vecteur, et tous niveaux de l'arbre forment donc la structure qui est rétourné. \\
+
+Cette réprésentation convient à l'étape d'unir, pour chaque niveau, les nœuds qui ont le même childmask et les mêmes pointeurs. Comme \textit{std::vector<int>} définit \textit{operator==} de cette manière exacte, dans ce but, on peut utiliser les outils de la bibliothèque standard de C++. On procède du niveau des feuilles à la racine de la manière suivante: \\
 
 \begin{lstlisting}
-void Octree::encodeBreadthFirst(std::vector<uint8_t>& storage);
+// find all uniques
+std::vector<std::vector<int>> uniques(dagTree[lvl]);
+std::sort(uniques.begin(), uniques.end());
+auto resizeIterator = std::unique(uniques.begin(), uniques.end());
+uniques.resize( std::distance(uniques.begin(), resizeIterator) );
+
+// merging
+// find an (injective) mapping from the nodes
+// in the original level to uniques
+std::vector<int> mapping;
+for (auto node : dagTree[lvl]) {
+    auto newIt = std::lower_bound(uniques.begin(), uniques.end(), node);
+    mapping.push_back(std::distance(uniques.begin(), newIt));
+}
+
+// update the pointers in the level above to point
+// to the same element in uniques
+for (int prnt = dagTree[lvl-1].size() - 1; prnt >= 0; --prnt) {
+    for (int i = dagTree[lvl-1][prnt].size() - 1; i > 0; --i) {
+        dagTree[lvl-1][prnt][i] = mapping[dagTree[lvl-1][prnt][i]];
+    }
+}
+
+// actually replace the level with its uniques
+dagTree[lvl] = uniques;
 \end{lstlisting}
- 
-Les nœuds sont listés dans l’ordre « largeur d’abord » dans le tableau storage.
+Cette méthode réduit un arbre à un graphe orienté acyclique. Il serait possible d'optimiser, par enchaînement des nœuds et par un stockage qui juxtapose les childmasks et les indices, la taille finale du DAG.\\
+
+
+Il existe en outre une méthode 
+\begin{lstlisting}
+void VoxelDAG::toVoxelGrid(VoxelGrid& voxGrid);
+\end{lstlisting}
+qui sert à reconvertir le DAG vers un VoxelGrid, qui peut être facilement converti en un maillage.
+
+\subsection{Visualisation} % (fold)
+\label{sub:visualisation}
+
+% subsection visualisation (end)
+
+\subsection{Résultats} % (fold)
+\label{sub:r_sultats}
+Nous avons pu comparer les résultats de ces différentes structures en termes de taille mémoire afin d'observer l'utilité des DAG. Nous avons constaté qu'il faut souvent faire un choix entre stockage optimal et facilité de parcours.
+% subsection r_sultats (end)
+
+% \subsection{Extensions} % (fold)
+% \label{sub:extensions}
+% On s'est limité à une implémentation partielle. Des extensions possibles seraient:
+% \begin{itemize}
+%   \item Stockage plus efficace: toutes les données dans un seul vector
+%   \item Rendu direct des SVO/DAG
+%   \item Optimisation de la performance des fonctions de conversion maillage/octree
+% \end{itemize}
+% % subsection extensions (end)
 
 \end{document}
-
