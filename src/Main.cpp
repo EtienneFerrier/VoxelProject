@@ -51,7 +51,7 @@ Mesh mesh;
 Mesh sphereMesh;
 Mesh voxelMesh;
 Octree tree;
-VoxelGrid voxGrid(128); // Modifier la resolution de la grille ici
+VoxelGrid voxGrid(64); // Modifier la resolution de la grille ici
 VoxelDAG dag;
 
 using namespace std;
@@ -75,6 +75,9 @@ void printUsage () {
 	     << " 1 : Original mesh display" << std::endl
 		 << " 2 : BSH tree display" << std::endl
          << " 3 : Voxel mesh display" << std::endl
+         << " c : Clear highlights (voxel)" << std::endl
+         << " o : Highlight octree parts" << std::endl
+         << " d : Highlight DAG parts" << std::endl
          << " p : Increase BSH level" << std::endl
 		 << " m : Decrease BSH level" << std::endl << std::endl;
 }
