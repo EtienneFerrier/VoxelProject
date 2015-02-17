@@ -51,7 +51,7 @@ Mesh mesh;
 Mesh sphereMesh;
 Mesh voxelMesh;
 Octree tree;
-VoxelGrid voxGrid(64); // Modifier la resolution de la grille ici
+VoxelGrid voxGrid(128); // Modifier la resolution de la grille ici
 
 using namespace std;
 
@@ -381,9 +381,8 @@ int main (int argc, char ** argv) {
     init (argc >= 2 ? argv[1] : "models/rhino.off");
 
 	//========================= Ajout VoxelDAG Project ================
-
 	cout << "Mesh loaded : " << mesh.T.size() << " triangles" << endl;
-
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	// Shere mesh loading only for BSHtree display
 	sphereMesh.loadOFF(argc == 3 ? argv[2] : "models/sphere.off");
 	cout << "Sphere mesh loaded." << endl;
@@ -402,7 +401,8 @@ int main (int argc, char ** argv) {
     cout << "Mesh -> VoxelGrid done : " << voxGrid.nbVoxelPleins() << " voxels pleins" << endl;
 	// VoxelGrid to Octree 
 	tree.fillOctreeWithVoxelGrid(voxGrid);
-	cout << "VoxelGrid -> Octree done" << endl;
+	cout << "VoxelGrid -> Octree done : " << tree.memorySize()/8 << " bytes" << endl;
+
 
 	// Octree to Breadth First encoding
 	vector<uint8_t> storage;
@@ -417,7 +417,15 @@ int main (int argc, char ** argv) {
 	vector<uint8_t> masks;
     vector<int> pointers;
 	tree.encodeWithPointers(masks, pointers);
-	cout << "Octree -> Pointer Encoding done : " << masks.size() + 4*pointers.size() << " bytes" << endl;
+	cout << masks.size() << endl;
+	int count = 0;
+	for (int i : pointers)
+	{
+		if (i > 0)
+			count++;
+	}
+	cout << count << endl;
+	cout << "Octree -> Pointer Encoding done : " << masks.size() + 4*count << " bytes" << endl;
 	// Efficient Pointer encoding to Octree
 	tree = Octree();
 	tree.loadFromPointerEncoding(masks, pointers);
@@ -426,7 +434,7 @@ int main (int argc, char ** argv) {
     // Octree to DAG
     VoxelDAG dag;
     dag.buildDAG(tree);
-    cout << "Octree -> DAG done" << endl;
+    cout << "Octree -> DAG done : " << dag.getSize() << " bytes." << endl;
 
 	// Octree to VoxelGrid
 	tree.convertOctreeToVoxelGrid(voxGrid);

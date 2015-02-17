@@ -136,6 +136,18 @@ public:
             }
         }
     }
+
+	int getSize()
+	{
+		int res = 0;
+		for (int i = 0; i < _dag.size(); i++)
+			for (int j = 0; j < _dag[i].size(); j++)
+			{
+				res += _dag[i][j].size();
+			}
+
+		return res;
+	}
 };
 
 

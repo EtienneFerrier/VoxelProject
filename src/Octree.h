@@ -26,6 +26,23 @@ public:
 	bool isEmpty();
 	bool isLeaf();
 	bool isFatherOfLeaves();
+	inline int memorySize()
+	{
+		if (_children == NULL)
+			return 40;
+		else
+		{
+			return 264
+				+ _children[0].memorySize()
+				+ _children[1].memorySize()
+				+ _children[2].memorySize()
+				+ _children[3].memorySize()
+				+ _children[4].memorySize()
+				+ _children[5].memorySize()
+				+ _children[6].memorySize()
+				+ _children[7].memorySize();
+		}
+	}
 	std::vector<Octree*> children();
 	void fillOctreeWithVoxelGrid(VoxelGrid& voxGrid);
 	void cutEmptyNodes();
