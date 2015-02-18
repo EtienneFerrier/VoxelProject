@@ -58,7 +58,7 @@ using namespace std;
 
 void printUsage () {
 	std::cerr << std::endl 
-         << "gMini: a minimal OpenGL/GLUT application" << std::endl
+        /* << "gMini: a minimal OpenGL/GLUT application" << std::endl
          << "for 3D graphics." << std::endl 
          << "Author : Tamy Boubekeur" << std::endl << std::endl
          << "Usage : ./gmini [<file.off>]" << std::endl
@@ -71,7 +71,7 @@ void printUsage () {
          << " <drag>+<left button>: rotate model" << std::endl 
          << " <drag>+<right button>: move model" << std::endl
          << " <drag>+<middle button>: zoom" << std::endl
-		 << " q, <esc>: Quit" << std::endl << std::endl
+		 << " q, <esc>: Quit" << std::endl << std::endl*/
 	     << " 1 : Original mesh display" << std::endl
 		 << " 2 : BSH tree display" << std::endl
          << " 3 : Voxel mesh display" << std::endl
@@ -391,9 +391,12 @@ int main (int argc, char ** argv) {
 
     init (argc >= 2 ? argv[1] : "models/rhino.off");
 
-	//========================= Ajout VoxelDAG Project ================
-	cout << "Mesh loaded : " << mesh.T.size() << " triangles" << endl;
+	//========================= Ajouts Sparse Voxel DAG Project ================
+
+	//Mesh loading
+	cout << "Mesh loaded : " << mesh.T.size() << " triangles." << endl;
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+
 	// Shere mesh loading only for BSHtree display
 	sphereMesh.loadOFF(argc == 3 ? argv[2] : "models/sphere.off");
 	cout << "Sphere mesh loaded." << endl;
@@ -401,43 +404,34 @@ int main (int argc, char ** argv) {
 	// BSHtree computing
 	mesh.computeBSH(9);
 	maxBSHlevel = mesh.BSHtree->maxCompleteLevel(); // Limite de l'affichage du BSH
-	cout << "BSH done." << endl;
-	//cout << "	Hauteur = " << mesh.BSHtree->hauteur() << endl;
-	//cout << "	Max complete level : " << mesh.BSHtree->maxCompleteLevel() << endl;
-	//cout << "	Max taille feuille : " << mesh.BSHtree->maxTailleFeuille() << endl;
+	cout << "BSH done." << endl << endl;
 
 	// Mesh to VoxelGrid
     voxGrid.fillSparseGridBSH(mesh);
     voxGrid.emptyInteriorVoxels();
-    cout << "Mesh -> VoxelGrid done : " << voxGrid.nbVoxelPleins() << " voxels pleins" << endl;
+    cout << "Mesh -> VoxelGrid done : size = " << voxGrid.getSize() << endl;
+
 	// VoxelGrid to Octree 
 	tree.fillOctreeWithVoxelGrid(voxGrid);
-	cout << "VoxelGrid -> Octree done : " << tree.memorySize()/8 << " bytes" << endl;
-
+	cout << "VoxelGrid -> Octree done : " << tree.memorySize()/8 << " bytes." << endl;
 
 	// Octree to Breadth First encoding
 	vector<uint8_t> storage;
 	tree.encodeBreadthFirst(storage);
-	cout << "Octree -> Breadth First Encoding done : " << storage.size() << " bytes" << endl;
+	cout << "Octree -> Breadth First Encoding done : " << storage.size() << " bytes." << endl;
 	tree = Octree();
-	// Breadth First encoding to Octree
+
+	// (testing purposes) Breadth First encoding to Octree
 	tree.loadFromBreadthFirst(storage);
-	cout << "Breadth First Encoding -> Octree done" << endl;
+	cout << "Breadth First Encoding -> Octree done." << endl;
 
 	// Octree to Efficient Pointer encoding
 	vector<uint8_t> masks;
     vector<int> pointers;
 	tree.encodeWithPointers(masks, pointers);
-	cout << masks.size() << endl;
-	int count = 0;
-	for (int i : pointers)
-	{
-		if (i > 0)
-			count++;
-	}
-	cout << count << endl;
-	cout << "Octree -> Pointer Encoding done : " << masks.size() + 4*count << " bytes" << endl;
-	// Efficient Pointer encoding to Octree
+	cout << "Octree -> Pointer Encoding done : " << masks.size() + 4*pointers.size() << " bytes." << endl;
+
+	// (testing purposes) Efficient Pointer encoding to Octree
 	tree = Octree();
 	tree.loadFromPointerEncoding(masks, pointers);
 	cout << "Pointer Encoding -> Octree done" << endl;
@@ -446,20 +440,16 @@ int main (int argc, char ** argv) {
     dag.buildDAG(tree);
     cout << "Octree -> DAG done : " << dag.getSize() << " bytes." << endl;
 
-	// Octree to VoxelGrid
+	// (testing & display purposes) Octree to VoxelGrid
 	tree.convertOctreeToVoxelGrid(voxGrid);
 	cout << "Octree -> VoxelGrid done" << endl;
 
-    // Octree to DAG
-    dag.buildDAG(tree);
-    cout << "Octree -> DAG done" << endl;
-
-    // DAG to VoxelGrid
+    // (testing & display purposes) DAG to VoxelGrid
     voxGrid.setAllGrid(false);
     dag.toVoxelGrid(voxGrid);
     cout << "DAG -> VoxelGrid done" << endl;
 
-	// VoxelGrid to Mesh
+	// (testing & display purposes) VoxelGrid to Mesh
 	voxGrid.convertToMesh(voxelMesh);
 	cout << "VoxelGrid -> Mesh done : " << voxelMesh.Q.size() << " quads" << endl;
 
